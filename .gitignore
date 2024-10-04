@@ -1,0 +1,29 @@
+# Flutter/Dart/Pub specific settings
+.dart_tool/
+.packages
+.flutter-plugins
+.flutter-plugins-dependencies
+.idea/
+
+# VS Code settings
+.vscode/
+
+# Build outputs
+build/
+ios/Flutter/Flutter.framework
+ios/Flutter/Flutter.podspec
+ios/Flutter/Generated.xcconfig
+ios/.symlinks/
+ios/Pods/
+ios/Runner.xcworkspace/
+android/app/*.keystore
+android/.gradle
+android/app/build/
+android/app/libs/
+ios/Pods/
+
+# Other
+*.iml
+*.log
+*.hprof
+*.orig
