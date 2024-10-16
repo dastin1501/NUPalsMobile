@@ -1,133 +1,146 @@
 const express = require('express');
-const axios = require('axios');
-const mongoose = require('mongoose');
-const User = require('../models/User'); // Assuming user.js is in the root folder
-const router = express.Router();
-const Fuse = require('fuse.js'); // Import Fuse.js
+const { HfInference } = require('@huggingface/inference');
+const hf = new HfInference('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');
+const User = require('../models/User');
+const SurveyResponse = require('../models/surveyResponse');
+const Fuse = require('fuse.js');
+const natural = require('natural');
 
-// Hugging Face API Key
-const HUGGING_FACE_API_KEY = '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'; // Replace with your API key
+// Initialize the tagger
+const tagger = new natural.BrillPOSTagger();
 
-// Categories mapping based on keywords
-const interestCategories = {
-  Sports: ['jogging', 'parachuting', 'soccer', 'basketball', 'tennis', 'swimming', 'running'],
-  Arts: ['drawing', 'painting', 'music', 'theater', 'sculpting', 'photography'],
-  Technology: ['AI programming', 'software', 'coding', 'web development', 'data science', 'machine learning'],
-  Gaming: ['gaming', 'video games', 'e-sports'],
-  Horror: ['horror', 'thriller', 'suspense'],
-  Fitness: ['gym', 'exercise', 'yoga', 'weightlifting'],
-  Cooking: ['cooking', 'baking', 'culinary'],
-  Nature: ['hiking', 'camping', 'outdoor activities'],
-  Literature: ['reading', 'writing', 'poetry', 'novels'],
-  Travel: ['travel', 'exploring', 'vacation'],
-  // Add more categories as needed
+// Generalized and expanded categories
+const categories = [
+    "Sports", "Technology", "Arts", "Health & Wellness", "Business", "Education",
+    "Travel", "Environment", "Personal Development", "Food & Cooking", "Gaming",
+    "Finance", "Music", "Science", "Literature", "Fashion", "Social Issues",
+    "History", "Mathematics", "Physics", "Biology", "Chemistry", "Engineering",
+    "Computer Science", "Psychology", "Sociology", "Philosophy", "Economics",
+    "Political Science", "Linguistics", "Environmental Science", "Statistics",
+    "Art History", "Music Theory"
+];
+
+// Fuzzy matching configuration
+const fuseOptions = {
+    includeScore: true,
+    threshold: 0.4,
+    keys: ["name"]
 };
 
-// Prepare the keywords for Fuse.js
-const keywordsArray = Object.entries(interestCategories).flatMap(([category, keywords]) =>
-  keywords.map(keyword => ({ keyword, category }))
-);
+// Stop words to filter out
+const stopWords = new Set([
+    "them", "their", "theirs", "that", "this", "these", "those", "and",
+    "but", "or", "if", "because", "as", "at", "by", "for", "of", "with",
+    "to", "in", "on", "an", "a", "the", "is", "are", "was", "were", "be",
+    "being", "been", "have", "has", "had", "do", "does", "did", "not",
+    "no", "yes", "all", "any", "some", "one", "two", "three", "four",
+    "five", "then", "than", "more", "most", "less", "least", "other",
+    "another", "such", "like", "as", "same", "also", "but", "so", "than",
+    "too", "very", "just", "only", "still", "even", "back", "here",
+    "there", "where", "when", "why", "how", "who", "whom", "which",
+    "what", "say", "says", "said", "tell", "tells", "tell", "make",
+    "makes", "want", "wants", "need", "needs", "know", "knows", "see",
+    "sees", "think", "thinks", "feel", "feels", "work", "works", "use",
+    "uses", "find", "finds", "give", "gives", "take", "takes", "go",
+    "goes", "come", "comes", "look", "looks", "ask", "asks", "put",
+    "puts", "call", "calls", "like", "likes", "love", "loves", "enjoy",
+    "enjoys", "hate", "hates", "try", "tries", "start", "starts", "finish",
+    "finishes", "play", "plays", "walk", "walks", "run", "runs", "swim",
+    "swims", "eat", "eats", "drink", "drinks", "sleep", "sleeps"
+]);
 
-const fuse = new Fuse(keywordsArray, {
-  keys: ['keyword'],
-  threshold: 0.3, // Adjust threshold for matching
-});
+// Function to perform fuzzy matching
+function fuzzyMatch(interests) {
+    const fuse = new Fuse(categories.map(cat => ({ name: cat })), fuseOptions);
+    const matches = [];
 
-// Route to process user interests
-router.post('/submit-survey', async (req, res) => {
-  const { email, answers } = req.body; // Expect email instead of userId
-
-  // Check if email and answers are provided
-  if (!email || !answers || !Array.isArray(answers)) {
-    return res.status(400).json({ error: 'Email and answers are required.' });
-  }
-
-  // Log received data for debugging
-  console.log('Received email:', email);
-  console.log('Received answers:', answers);
-
-  try {
-    // Find user by email to get the ObjectId
-    const user = await User.findOne({ email });
-    if (!user) {
-      return res.status(400).json({ error: 'User not found' });
-    }
-
-    const userId = user._id; // Get the MongoDB ObjectId
-
-    // Combine all answers into a single string
-    const userInput = answers.join(' ');
-
-    // Extract custom interests using Hugging Face API
-    const customInterests = await extractCustomInterests(userInput);
-    // Classify categorized interests
-    const categorizedInterests = classifyCategorizedInterests(customInterests);
-
-    // Log extracted interests for debugging
-    console.log('Custom Interests:', customInterests);
-    console.log('Categorized Interests:', categorizedInterests);
-
-    // Update user interests in MongoDB
-    await User.findOneAndUpdate(
-      { _id: userId }, // Ensure we are querying with the correct field
-      {
-        customInterests, // Save custom interests in the interests field
-        categorizedInterests, // Save categorized interests
-      },
-      { new: true, upsert: true } // Create a new document if one does not exist
-    );
-
-    res.json({ message: 'Interests saved successfully!', customInterests, categorizedInterests });
-  } catch (error) {
-    console.error('Error processing interests:', error.message);
-    res.status(500).json({ error: 'Failed to process interests' });
-  }
-});
-
-// Function to extract custom interests using NER
-async function extractCustomInterests(userInput) {
-  try {
-    const response = await axios.post(
-      'https://api-inference.huggingface.co/models/dbmdz/bert-large-cased-finetuned-conll03-english',
-      { inputs: userInput },
-      {
-        headers: {
-          'Authorization': `Bearer ${HUGGING_FACE_API_KEY}`,
-          'Content-Type': 'application/json',
-        },
-      }
-    );
-    console.log('Custom interests response:', response.data); // Log API response for debugging
-
-    // Adjust this mapping based on the actual structure of response.data
-    if (Array.isArray(response.data)) {
-      return response.data.map(entity => entity.word || entity); // Fallback to entity itself if 'word' is not available
-    } else {
-      return []; // Return an empty array if the response is not in expected format
-    }
-  } catch (error) {
-    console.error('Error extracting custom interests:', error.response?.data || error.message);
-    return []; // Return an empty array in case of an error
-  }
-}
-
-// Function to classify categorized interests based on custom interests using Fuse.js
-function classifyCategorizedInterests(customInterests) {
-  const categorized = new Set(); // Use Set to avoid duplicates
-
-  if (customInterests.length === 0) {
-    return []; // Return an empty array if no custom interests are found
-  }
-
-  customInterests.forEach(interest => {
-    const results = fuse.search(interest);
-
-    results.forEach(result => {
-      categorized.add(result.item.category); // Add the category if a match is found
+    interests.forEach(interest => {
+        const result = fuse.search(interest);
+        if (result.length > 0) {
+            matches.push(result[0].item.name); // Get the top match
+        }
     });
-  });
 
-  return Array.from(categorized); // Convert Set to Array
+    return [...new Set(matches)]; // Remove duplicates
 }
+
+// Function to extract interests using keyword extraction
+async function extractInterests(answers) {
+    try {
+        const specificInterests = [];
+        const combinedAnswers = answers.join(' ');
+
+        const tokenizer = new natural.WordTokenizer();
+        const words = tokenizer.tokenize(combinedAnswers.toLowerCase());
+
+        const filteredWords = words.filter(word => {
+            return !stopWords.has(word);
+        });
+
+        const uniqueInterests = [...new Set(filteredWords)].slice(0, 3);
+        specificInterests.push(...uniqueInterests);
+
+        const matchedCategories = fuzzyMatch(specificInterests);
+
+        const classificationResult = await hf.zeroShotClassification({
+            model: 'facebook/bart-large-mnli',
+            inputs: combinedAnswers,
+            parameters: { candidate_labels: categories.slice(0, 10) }
+        });
+
+        if (classificationResult && classificationResult.length > 0 && classificationResult[0].labels) {
+            const topCategories = classificationResult[0].labels.slice(0, 3);
+            return {
+                specificInterests: uniqueInterests,
+                topCategories,
+                matchedCategories
+            };
+        } else {
+            throw new Error("Classification result is undefined or does not contain labels.");
+        }
+    } catch (error) {
+        console.error("Error in extractInterests:", error);
+        throw error; // Re-throw to be caught in the route handler
+    }
+}
+
+// Express.js setup
+const router = express.Router();
+
+// Route to analyze survey responses
+router.post('/analyze', async (req, res) => {
+    const { userId, surveyResponse } = req.body;
+
+    if (!userId || !surveyResponse || !surveyResponse.questions) {
+        return res.status(400).json({ error: 'userId and surveyResponse with questions are required.' });
+    }
+
+    try {
+        const responses = surveyResponse.questions.map(q => q.answer);
+        const analysis = await extractInterests(responses);
+
+        // Save the survey response and analysis result to the database
+        const newSurveyResponse = new SurveyResponse({
+            userId: userId,
+            surveyResponse: surveyResponse,
+            analysisResult: {
+                specificInterests: analysis.specificInterests,
+                topCategories: analysis.topCategories,
+                matchedCategories: analysis.matchedCategories // Include matched categories
+            }
+        });
+
+        await newSurveyResponse.save();
+
+        return res.status(200).json({
+            interests: analysis.specificInterests,
+            topCategories: analysis.topCategories,
+            matchedCategories: analysis.matchedCategories
+        });
+    } catch (error) {
+        console.error("Error analyzing survey response:", error);
+        return res.status(500).json({ error: 'Internal server error', details: error.message });
+    }
+});
 
 module.exports = router;

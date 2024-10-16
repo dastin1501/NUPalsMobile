@@ -1,3 +1,4 @@
-2024/10/01-10:53:30.062 4208 Reusing MANIFEST C:\Users\Dastin\AppData\Local\Temp\flutter_tools.298b73b9\flutter_tools_chrome_device.619ce9de\Default\Local Storage\leveldb/MANIFEST-000001
-2024/10/01-10:53:30.073 4208 Recovering log #3
-2024/10/01-10:53:30.078 4208 Reusing old log C:\Users\Dastin\AppData\Local\Temp\flutter_tools.298b73b9\flutter_tools_chrome_device.619ce9de\Default\Local Storage\leveldb/000003.log 
+2024/10/16-00:37:45.462 7dfc Reusing MANIFEST C:\Users\Dastin\AppData\Local\Temp\flutter_tools.3f431ad4\flutter_tools_chrome_device.b2be102b\Default\Local Storage\leveldb/MANIFEST-000001
+2024/10/16-00:37:45.470 7dfc Recovering log #3
+2024/10/16-00:37:45.470 7dfc (ignoring error) C:\Users\Dastin\AppData\Local\Temp\flutter_tools.3f431ad4\flutter_tools_chrome_device.b2be102b\Default\Local Storage\leveldb/000003.log: dropping 712 bytes; Corruption: checksum mismatch
+2024/10/16-00:37:45.477 7dfc Reusing old log C:\Users\Dastin\AppData\Local\Temp\flutter_tools.3f431ad4\flutter_tools_chrome_device.b2be102b\Default\Local Storage\leveldb/000003.log 

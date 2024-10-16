@@ -1,3 +1,4 @@
+// server.js
 const express = require('express');
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
@@ -6,7 +7,6 @@ const surveyRoutes = require('./routes/survey'); // Import survey routes
 const profileRoutes = require('./routes/profile');
 const postRoutes = require('./routes/post');
 const cors = require('cors');
-const User = require('./models/User'); // Import your User model
 
 // Load environment variables
 dotenv.config();

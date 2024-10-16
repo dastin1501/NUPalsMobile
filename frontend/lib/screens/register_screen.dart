@@ -8,6 +8,7 @@ import 'package:http_parser/http_parser.dart';
 import 'package:mime/mime.dart';
 import 'dart:convert';
 import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class RegisterScreen extends StatefulWidget {
   final String email;
@@ -163,13 +164,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
       if (response.statusCode == 201) {
         final responseBody = await response.stream.bytesToString();
         final Map<String, dynamic> responseData = json.decode(responseBody);
-        String userId = responseData['_id']; // Assuming your API responds with the user's ObjectID
+        String userId = responseData['_id'];
 
-        Navigator.pushReplacementNamed(context,'/survey',arguments: {'userId': userId, 'email': widget.email},); // Navigate using the MongoDB ObjectID
-      } else {
-        final responseBody = await response.stream.bytesToString();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to register: ${response.statusCode} - $responseBody')),
+        // Save userId to shared preferences
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('userId', userId);
+
+        // Navigate to SurveyScreen
+        Navigator.pushReplacementNamed(
+          context,
+          '/survey',
+          arguments: {'userId': userId, 'email': widget.email},
         );
       }
     } catch (e) {
@@ -301,12 +306,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
               ),
               SizedBox(height: 10),
 
-              // College selection
+              // College dropdown
               DropdownButtonFormField<String>(
                 value: _selectedCollege,
                 hint: Text('Select College', style: TextStyle(color: nuBlue)),
                 items: collegeDepartments.map((String college) {
-                  return DropdownMenuItem<String>(
+                  return DropdownMenuItem(
                     value: college,
                     child: Text(college),
                   );
@@ -327,14 +332,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
               ),
               SizedBox(height: 10),
 
-              // Year Level selection
+              // Year Level dropdown
               DropdownButtonFormField<String>(
                 value: _selectedYearLevel,
                 hint: Text('Select Year Level', style: TextStyle(color: nuBlue)),
-                items: yearLevels.map((String yearLevel) {
-                  return DropdownMenuItem<String>(
-                    value: yearLevel,
-                    child: Text(yearLevel),
+                items: yearLevels.map((String year) {
+                  return DropdownMenuItem(
+                    value: year,
+                    child: Text(year),
                   );
                 }).toList(),
                 onChanged: (value) {
@@ -387,16 +392,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
               ),
               SizedBox(height: 20),
 
-              // Submit Button
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: _submitRegistration,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: nuBlue,
-                  ),
-                  child: Text('Register'),
-                ),
+              // Register button
+              ElevatedButton(
+                onPressed: _submitRegistration,
+                style: ElevatedButton.styleFrom(backgroundColor: nuBlue),
+                child: Text('Register', style: TextStyle(color: nuWhite)),
               ),
             ],
           ),

@@ -9,12 +9,22 @@ import 'package:frontend/screens/login_screen.dart';
 import 'package:frontend/screens/survey_screen.dart';
 import 'package:frontend/screens/register_screen.dart';
 import 'package:frontend/utils/shared_preferences.dart';
+import 'dart:async';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
-void main() {
-  runApp(MyApp());
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized(); // Ensure binding is initialized
+  final userId = await SharedPreferencesService.getUserId(); // Load user ID
+
+  runApp(MyApp(userId: userId));
 }
 
 class MyApp extends StatelessWidget {
+  final String? userId;
+
+  MyApp({this.userId});
+
   @override
   Widget build(BuildContext context) {
     return ScreenUtilInit(
@@ -23,31 +33,15 @@ class MyApp extends StatelessWidget {
         return MaterialApp(
           title: 'Social Media App',
           theme: ThemeData(primarySwatch: Colors.blue),
-          initialRoute: '/splash',
+          initialRoute: userId != null ? '/main' : '/signup',
           routes: {
             '/signup': (context) => SignUpScreen(),
             '/login': (context) => LoginScreen(),
             '/': (context) => LoginScreen(),
-            '/main': (context) {
-              final userId = ModalRoute.of(context)!.settings.arguments as String;
-              return MainScreen(userId: userId);
-            },
+            '/main': (context) => MainScreen(userId: userId!), // Pass the loaded user ID
             '/splash': (context) => SplashScreen(),
-            '/register': (context) {
-              final userId = ModalRoute.of(context)!.settings.arguments as String;
-              return RegisterScreen(email: ''); // Ensure you pass the correct email
-            },
-            '/survey': (context) {
-              final args = ModalRoute.of(context)!.settings.arguments;
-              if (args is Map<String, dynamic>) {
-                final userId = args['userId'] as String;
-                final email = args['email'] as String; // Ensure email is passed correctly
-                return SurveyScreen(userId: userId, email: email); // Pass user ID and email
-              } else {
-                // Handle the case where the arguments are not as expected
-                return SurveyScreen(userId: '', email: ''); // or handle appropriately
-              }
-            },
+            '/register': (context) => RegisterScreen(email: ''),
+            '/survey': (context) => SurveyScreen(email: '', userId: '',),
           },
         );
       },
@@ -178,5 +172,34 @@ class _MainScreenState extends State<MainScreen> {
         ],
       ),
     );
+  }
+}
+
+// Function to register user
+Future<void> registerUser(BuildContext context, String email, String username, String password, String age, String college, String yearLevel, String bio) async {
+  final response = await http.post(
+    Uri.parse('http://yourserver.com/register'), // Replace with your server URL
+    headers: {'Content-Type': 'application/json'},
+    body: json.encode({
+      'email': email,
+      'username': username,
+      'password': password,
+      'age': age,
+      'college': college,
+      'yearLevel': yearLevel,
+      'bio': bio,
+    }),
+  );
+
+  if (response.statusCode == 201) {
+    // Registration successful, save user ID
+    final data = json.decode(response.body);
+    final userId = data['userId'];
+    await SharedPreferencesService.saveUserId(userId);
+    // Navigate to survey or main screen
+    Navigator.pushNamed(context, '/survey', arguments: {'email': email});
+  } else {
+    // Handle error
+    print('Registration failed: ${response.body}');
   }
 }

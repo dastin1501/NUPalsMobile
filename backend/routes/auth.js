@@ -91,7 +91,10 @@ router.post('/register', async (req, res) => {
 
   try {
     const savedUser = await newUser.save();
-    res.status(201).json({ message: 'User created successfully' });
+    res.status(201).json({
+      message: 'User created successfully',
+      userId: savedUser._id.toString(), // Return the user ID
+    });
   } catch (error) {
     console.error('Error during user creation:', error);
     res.status(500).json({ message: 'Error during user creation' });
@@ -114,7 +117,7 @@ router.post('/login', async (req, res) => {
     }
 
     return res.status(200).json({
-      _id: user._id.toString(),
+      userId: user._id.toString(), // Include user ID in response
       message: 'Login successful',
     });
   } catch (error) {

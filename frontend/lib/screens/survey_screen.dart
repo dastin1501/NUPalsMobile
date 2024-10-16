@@ -1,126 +1,86 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import '../utils/constants.dart'; // Import constants
+import '../utils/constants.dart';
+import '../utils/shared_preferences.dart';
 
 class SurveyScreen extends StatefulWidget {
+  final String email;
   final String userId;
-  final String email; // New parameter for email
 
-  SurveyScreen({required this.userId, required this.email});
+  SurveyScreen({required this.email, required this.userId});
 
   @override
   _SurveyScreenState createState() => _SurveyScreenState();
 }
 
 class _SurveyScreenState extends State<SurveyScreen> {
-  final List<Map<String, String>> questions = [
-    {
-      'question': 'What do you enjoy doing on a weekend?',
-      'type': 'text',
-    },
-    {
-      'question': 'If you could be an expert in anything, what would it be?',
-      'type': 'text',
-    },
-    {
-      'question': 'What kind of activities make you lose track of time?',
-      'type': 'text',
-    },
-    {
-      'question': 'What’s your favorite movie genre?',
-      'type': 'text',
-    },
-    {
-      'question': 'Pick a superpower you’d want to have!',
-      'type': 'text',
-    },
+  final List<String> _questions = [
+    "What outdoor activities do you enjoy?",
+    "What technologies are you interested in?",
+    "What hobbies do you have?"
   ];
 
-  final List<TextEditingController> _controllers = [];
-  String _errorMessage = '';
-  bool _isLoading = false;
-  List<String> topInterests = []; // To store user's top interests
-  List<String> categorizedInterests = []; // To store categorized interests
+  final List<String> _responses = List.filled(3, '');
+  int _currentQuestionIndex = 0;
+  String _result = '';
+  String _userId = '';
 
   @override
   void initState() {
     super.initState();
-    for (var question in questions) {
-      _controllers.add(TextEditingController());
+    _loadUserId(); // Load user ID when the screen initializes
+  }
+
+  Future<void> _loadUserId() async {
+    String? userId = await SharedPreferencesService.getUserId();
+    setState(() {
+      _userId = userId ?? '';
+    });
+  }
+
+  void _nextQuestion() {
+    if (_responses[_currentQuestionIndex].isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Please answer the current question.')));
+      return;
+    }
+    if (_currentQuestionIndex < _questions.length - 1) {
+      setState(() {
+        _currentQuestionIndex++;
+      });
+    } else {
+      _submitResponses();
     }
   }
 
-  void submitAnswers() async {
-    setState(() {
-      _errorMessage = '';
-      _isLoading = true;
-    });
-
-    List<String> answers = _controllers.map((controller) => controller.text).toList();
-
-    // Use the email passed in instead of getting it from a TextField
-    String email = widget.email;
-
-    if (answers.any((answer) => answer.isEmpty)) {
+  void _submitResponses() async {
+    if (_userId.isEmpty) {
       setState(() {
-        _errorMessage = 'All fields are required!';
-        _isLoading = false;
+        _result = 'Error: User ID is empty. Please log in again.';
       });
       return;
     }
 
-    try {
-      var response = await http.post(
-        Uri.parse('http://localhost:5000/api/survey/submit-survey'),
-        headers: {"Content-Type": "application/json"},
-        body: jsonEncode({
-          'email': email, // Pass the email here
-          'answers': answers,
-        }),
-      );
+    final responseText = _responses
+        .asMap()
+        .entries
+        .map((entry) => {'question': _questions[entry.key], 'answer': entry.value})
+        .toList();
 
-      if (response.statusCode == 200) {
-        var jsonResponse = jsonDecode(response.body);
-        topInterests = jsonResponse['customInterests'] ?? [];
-        categorizedInterests = jsonResponse['categorizedInterests'] ?? []; // Get categorized interests
+    final response = await http.post(
+      Uri.parse('http://localhost:5000/api/survey/analyze'),
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode({'surveyResponse': {'questions': responseText}, 'userId': _userId}),
+    );
 
-        // Show a dialog with top interests and categorized interests
-        showDialog(
-          context: context,
-          builder: (_) => AlertDialog(
-            title: Text('Your Interests'),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('Custom Interests: ${topInterests.isNotEmpty ? topInterests.join(', ') : 'None'}'),
-                SizedBox(height: 8),
-                Text('Categorized Interests: ${categorizedInterests.isNotEmpty ? categorizedInterests.join(', ') : 'None'}'),
-              ],
-            ),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.pushNamed(context, '/main');
-                },
-                child: Text('OK'),
-              ),
-            ],
-          ),
-        );
-      } else {
-        setState(() {
-          _errorMessage = 'Error: ${response.statusCode}. Please try again.';
-        });
-      }
-    } catch (e) {
+    if (response.statusCode == 200) {
+      final responseData = json.decode(response.body);
       setState(() {
-        _errorMessage = 'An error occurred: $e';
+        _result = 'Interests: ${responseData['interests']}\nTop Categories: ${responseData['topCategories']}\nMatched Categories: ${responseData['matchedCategories']}';
       });
-    } finally {
+    } else {
       setState(() {
-        _isLoading = false;
+        _result = 'Error: Unable to submit responses';
       });
     }
   }
@@ -128,66 +88,29 @@ class _SurveyScreenState extends State<SurveyScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Interest Survey'),
-        backgroundColor: nuBlue, // Use the defined color
-      ),
-      body: SingleChildScrollView( // Make the body scrollable
-        child: Padding(
-          padding: EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              ...questions.asMap().entries.map((entry) {
-                int index = entry.key;
-                Map<String, String> question = entry.value;
-
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 16.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        question['question']!,
-                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: nuBlue),
-                      ),
-                      SizedBox(height: 8),
-                      TextField(
-                        controller: _controllers[index],
-                        decoration: InputDecoration(
-                          border: OutlineInputBorder(),
-                          hintText: 'Your answer...',
-                          hintStyle: TextStyle(color: Theme.of(context).hintColor),
-                        ),
-                        maxLines: 2,
-                      ),
-                    ],
-                  ),
-                );
-              }).toList(),
-              SizedBox(height: 20),
-              if (_errorMessage.isNotEmpty)
-                Text(_errorMessage, style: TextStyle(color: Colors.red)),
-              SizedBox(height: 20),
-              _isLoading
-                  ? Center(child: CircularProgressIndicator())
-                  : ElevatedButton(
-                      onPressed: submitAnswers,
-                      child: Text('Submit'),
-                      style: ElevatedButton.styleFrom(backgroundColor: nuYellow), // Button color
-                    ),
-            ],
-          ),
+      backgroundColor: nuWhite,
+      appBar: AppBar(title: Text('Survey', style: TextStyle(color: nuWhite)), backgroundColor: nuBlue),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          children: [
+            Text(_questions[_currentQuestionIndex], style: TextStyle(fontSize: 18, color: nuBlue)),
+            SizedBox(height: 16),
+            TextField(
+              decoration: InputDecoration(hintText: 'Your answer', hintStyle: TextStyle(color: Colors.grey)),
+              onChanged: (value) => _responses[_currentQuestionIndex] = value,
+            ),
+            SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: _nextQuestion,
+              style: ElevatedButton.styleFrom(backgroundColor: nuBlue),
+              child: Text(_currentQuestionIndex < _questions.length - 1 ? 'Next' : 'Submit'),
+            ),
+            SizedBox(height: 20),
+            Text(_result, style: TextStyle(fontSize: 16, color: Colors.black)),
+          ],
         ),
       ),
     );
-  }
-
-  @override
-  void dispose() {
-    for (var controller in _controllers) {
-      controller.dispose();
-    }
-    super.dispose();
   }
 }
