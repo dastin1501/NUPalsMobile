@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:frontend/utils/constants.dart'; // Ensure this file has your theme colors
+import 'package:frontend/screens/survey_screen.dart'; // Import your survey screen
 
 class EditProfileScreen extends StatefulWidget {
   final String userId;
@@ -115,6 +116,22 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     ),
                     onPressed: _updateProfile,
                     child: Text('Update Profile', style: TextStyle(color: nuBlue, fontWeight: FontWeight.bold)),
+                  ),
+                ),
+                SizedBox(height: 24),
+                Center(
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: nuYellow,
+                      padding: EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                    ),
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => SurveyScreen(email: '', userId: '',)), // Navigate to your survey screen
+                      );
+                    },
+                    child: Text('Change Interests', style: TextStyle(color: nuBlue, fontWeight: FontWeight.bold)),
                   ),
                 ),
               ],

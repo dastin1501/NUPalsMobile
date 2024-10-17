@@ -17,8 +17,8 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-// Send email verification code
-router.post('/send-verification', async (req, res) => {
+// Send email verification code for forgot password
+router.post('/forgot-password', async (req, res) => {
   const { email } = req.body;
 
   // Ensure email domain is correct
@@ -26,10 +26,10 @@ router.post('/send-verification', async (req, res) => {
     return res.status(400).json({ message: 'Invalid email domain' });
   }
 
-  // Check if user already exists
+  // Check if user exists
   const existingUser = await User.findOne({ email });
-  if (existingUser) {
-    return res.status(400).json({ message: 'User already exists' });
+  if (!existingUser) {
+    return res.status(400).json({ message: 'User not found' });
   }
 
   // Generate verification code
@@ -40,29 +40,35 @@ router.post('/send-verification', async (req, res) => {
   const mailOptions = {
     from: 'no-reply@yourapp.com',
     to: email,
-    subject: 'Email Verification',
-    text: `Your verification code is: ${code}`,
+    subject: 'Password Reset Code',
+    text: `Your password reset code is: ${code}`,
   };
 
   transporter.sendMail(mailOptions, (error) => {
     if (error) {
       return res.status(500).json({ message: 'Failed to send email' });
     }
-    res.status(200).json({ message: 'Verification code sent' });
+    res.status(200).json({ message: 'Verification code sent to email' });
   });
 });
 
-// Verify the code only
-router.post('/verify-code', async (req, res) => {
-  const { email, code } = req.body;
+// Reset password
+router.post('/reset-password', async (req, res) => {
+  const { email, code, newPassword } = req.body;
 
-  // Check if the code matches
+  // Validate verification code
   if (verificationCodes[email] !== code) {
     return res.status(400).json({ message: 'Invalid verification code' });
   }
 
-  // Code is valid, respond with success message
-  res.status(200).json({ message: 'Verification successful. Please proceed to register.' });
+  // Hash the new password
+  const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+  // Update user's password
+  await User.updateOne({ email }, { password: hashedPassword });
+  delete verificationCodes[email]; // Clear the used code
+
+  res.status(200).json({ message: 'Password reset successfully' });
 });
 
 // Route to handle user registration
@@ -108,16 +114,16 @@ router.post('/login', async (req, res) => {
   try {
     const user = await User.findOne({ email });
     if (!user) {
-      return res.status(400).json({ message: 'User not found' });
+      return res.status(400).json({ message: 'User not found', userId: null });
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      return res.status(400).json({ message: 'Invalid credentials' });
+      return res.status(400).json({ message: 'Invalid credentials', userId: null });
     }
 
     return res.status(200).json({
-      userId: user._id.toString(), // Include user ID in response
+      userId: user._id.toString(),
       message: 'Login successful',
     });
   } catch (error) {

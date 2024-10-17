@@ -1,3 +1,4 @@
+// routes/profile.js
 const express = require('express');
 const router = express.Router();
 const multer = require('multer');
@@ -53,7 +54,7 @@ router.post('/', upload.single('profileImage'), async (req, res) => {
       firstName,
       lastName,
       email,
-      password: hashedPassword, // Store hashed password
+      password: hashedPassword,
       username,
       age,
       college,
@@ -64,7 +65,7 @@ router.post('/', upload.single('profileImage'), async (req, res) => {
     await newUser.save();
     res.status(201).json(newUser);
   } catch (err) {
-    console.error('Error during user creation:', err); // Log the entire error object for better debugging
+    console.error('Error during user creation:', err);
     res.status(500).send('Server Error');
   }
 });
@@ -72,7 +73,10 @@ router.post('/', upload.single('profileImage'), async (req, res) => {
 // Fetch user profile details
 router.get('/:userId', async (req, res) => {
   try {
-    const user = await User.findById(req.params.userId).populate('following followers'); // Populate following and followers
+    const user = await User.findById(req.params.userId)
+      .populate('following followers', 'username')
+      .select('-password'); // Exclude password from response
+
     if (!user) {
       return res.status(404).json({ msg: 'User not found' });
     }

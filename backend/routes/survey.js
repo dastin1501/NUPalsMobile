@@ -29,6 +29,8 @@ const fuseOptions = {
 
 // Stop words to filter out
 const stopWords = new Set([
+   "i", "me", "my", "mine", "you", "your", "yours", "he", "him", "his",
+    "she", "her", "hers", "it", "its", "we", "us", "our", "ours", "they",
     "them", "their", "theirs", "that", "this", "these", "those", "and",
     "but", "or", "if", "because", "as", "at", "by", "for", "of", "with",
     "to", "in", "on", "an", "a", "the", "is", "are", "was", "were", "be",
@@ -126,16 +128,21 @@ router.post('/analyze', async (req, res) => {
             analysisResult: {
                 specificInterests: analysis.specificInterests,
                 topCategories: analysis.topCategories,
-                matchedCategories: analysis.matchedCategories // Include matched categories
+                tfidfTerms: analysis.tfidfTerms // Assuming you have TF-IDF terms to save
             }
         });
 
         await newSurveyResponse.save();
 
+        // Update the user's custom interests with specific interests
+        await User.findByIdAndUpdate(userId, {
+            $addToSet: { customInterests: { $each: analysis.specificInterests } } // Use $addToSet to avoid duplicates
+        });
+
         return res.status(200).json({
             interests: analysis.specificInterests,
             topCategories: analysis.topCategories,
-            matchedCategories: analysis.matchedCategories
+            tfidfTerms: analysis.tfidfTerms
         });
     } catch (error) {
         console.error("Error analyzing survey response:", error);

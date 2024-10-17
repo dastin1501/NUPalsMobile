@@ -1,8 +1,13 @@
-2024/10/16-00:37:45.519 2c98 Reusing MANIFEST C:\Users\Dastin\AppData\Local\Temp\flutter_tools.3f431ad4\flutter_tools_chrome_device.b2be102b\Default\shared_proto_db/MANIFEST-000001
-2024/10/16-00:37:45.520 2c98 Recovering log #16
-2024/10/16-00:37:45.520 2c98 Reusing old log C:\Users\Dastin\AppData\Local\Temp\flutter_tools.3f431ad4\flutter_tools_chrome_device.b2be102b\Default\shared_proto_db/000016.log 
-2024/10/16-00:37:45.521 2c98 Delete type=0 #3
-2024/10/16-00:37:45.521 2c98 Delete type=0 #4
-2024/10/16-00:37:45.521 2c98 Delete type=0 #7
-2024/10/16-00:37:45.521 2c98 Delete type=0 #10
-2024/10/16-00:37:45.521 2c98 Delete type=0 #13
+2024/10/17-15:33:06.322 75ac Reusing MANIFEST C:\Users\Dastin\AppData\Local\Temp\flutter_tools.b5da26a6\flutter_tools_chrome_device.fe537c8b\Default\shared_proto_db/MANIFEST-000001
+2024/10/17-15:33:06.323 75ac Recovering log #19
+2024/10/17-15:33:06.325 75ac Reusing old log C:\Users\Dastin\AppData\Local\Temp\flutter_tools.b5da26a6\flutter_tools_chrome_device.fe537c8b\Default\shared_proto_db/000019.log 
+2024/10/17-15:33:06.325 75ac Delete type=0 #3
+2024/10/17-15:33:06.326 75ac Delete type=0 #4
+2024/10/17-15:33:06.326 75ac Delete type=0 #7
+2024/10/17-15:33:06.326 75ac Delete type=2 #8
+2024/10/17-15:33:06.326 75ac Delete type=0 #10
+2024/10/17-15:33:06.326 75ac Delete type=2 #11
+2024/10/17-15:33:06.326 75ac Delete type=0 #13
+2024/10/17-15:33:06.326 75ac Delete type=2 #14
+2024/10/17-15:33:06.326 75ac Delete type=0 #16
+2024/10/17-15:33:06.326 75ac Delete type=2 #17

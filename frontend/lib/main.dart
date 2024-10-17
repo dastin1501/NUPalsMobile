@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:frontend/screens/forgotpassword_screen.dart';
 import 'package:frontend/screens/profile_screen.dart';
 import 'package:frontend/screens/search_screen.dart';
 import 'package:frontend/screens/home_screen.dart';
@@ -8,6 +9,8 @@ import 'package:frontend/screens/signup_screen.dart';
 import 'package:frontend/screens/login_screen.dart';
 import 'package:frontend/screens/survey_screen.dart';
 import 'package:frontend/screens/register_screen.dart';
+import 'package:frontend/screens/messaging_screen.dart'; // Adjust the path as necessary
+import 'package:frontend/screens/inbox_screen.dart'; // Import the Inbox Screen
 import 'package:frontend/utils/shared_preferences.dart';
 import 'dart:async';
 import 'package:http/http.dart' as http;
@@ -38,10 +41,13 @@ class MyApp extends StatelessWidget {
             '/signup': (context) => SignUpScreen(),
             '/login': (context) => LoginScreen(),
             '/': (context) => LoginScreen(),
+            '/forgotpassword': (context) => ForgotPasswordScreen(),
             '/main': (context) => MainScreen(userId: userId!), // Pass the loaded user ID
             '/splash': (context) => SplashScreen(),
             '/register': (context) => RegisterScreen(email: ''),
             '/survey': (context) => SurveyScreen(email: '', userId: '',),
+            '/messages': (context) => MessagingScreen(userId: '', otherUserId: ''),
+            '/inbox': (context) => InboxScreen(userId: userId!), // Add InboxScreen route
           },
         );
       },
@@ -72,6 +78,7 @@ class _MainScreenState extends State<MainScreen> {
     _children.addAll([
       HomeScreen(userId: _userId),
       SearchScreen(userId: _userId),
+      InboxScreen(userId: _userId), // Add InboxScreen as a child
     ]);
   }
 
@@ -143,7 +150,12 @@ class _MainScreenState extends State<MainScreen> {
               leading: Icon(Icons.message),
               title: Text('Messages'),
               onTap: () {
-                // Navigate to Messages screen
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => MessagingScreen(userId: _userId, otherUserId: '',),
+                  ),
+                );
               },
             ),
             ListTile(
@@ -169,6 +181,10 @@ class _MainScreenState extends State<MainScreen> {
             icon: Icon(Icons.search),
             label: 'Search',
           ),
+          BottomNavigationBarItem( // Add the Inbox tab
+            icon: Icon(Icons.inbox),
+            label: 'Inbox',
+          ),
         ],
       ),
     );
@@ -178,7 +194,7 @@ class _MainScreenState extends State<MainScreen> {
 // Function to register user
 Future<void> registerUser(BuildContext context, String email, String username, String password, String age, String college, String yearLevel, String bio) async {
   final response = await http.post(
-    Uri.parse('http://yourserver.com/register'), // Replace with your server URL
+    Uri.parse('http://localhost:5000/register'), // Replace with your server URL
     headers: {'Content-Type': 'application/json'},
     body: json.encode({
       'email': email,

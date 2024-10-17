@@ -1,10 +1,13 @@
-2024/10/16-01:09:17.541 8848 Reusing MANIFEST C:\Users\Dastin\AppData\Local\Temp\flutter_tools.b6f0ae5f\flutter_tools_chrome_device.c42390c9\Default\shared_proto_db/MANIFEST-000001
-2024/10/16-01:09:17.541 8848 Recovering log #16
-2024/10/16-01:09:17.542 8848 (ignoring error) C:\Users\Dastin\AppData\Local\Temp\flutter_tools.b6f0ae5f\flutter_tools_chrome_device.c42390c9\Default\shared_proto_db/000016.log: dropping 20807 bytes; Corruption: checksum mismatch
-2024/10/16-01:09:17.542 8848 (ignoring error) C:\Users\Dastin\AppData\Local\Temp\flutter_tools.b6f0ae5f\flutter_tools_chrome_device.c42390c9\Default\shared_proto_db/000016.log: dropping 936 bytes; Corruption: missing start of fragmented record(2)
-2024/10/16-01:09:17.542 8848 Reusing old log C:\Users\Dastin\AppData\Local\Temp\flutter_tools.b6f0ae5f\flutter_tools_chrome_device.c42390c9\Default\shared_proto_db/000016.log 
-2024/10/16-01:09:17.543 8848 Delete type=0 #3
-2024/10/16-01:09:17.543 8848 Delete type=0 #4
-2024/10/16-01:09:17.543 8848 Delete type=0 #7
-2024/10/16-01:09:17.543 8848 Delete type=0 #10
-2024/10/16-01:09:17.543 8848 Delete type=0 #13
+2024/10/17-15:55:24.734 988 Reusing MANIFEST C:\Users\Dastin\AppData\Local\Temp\flutter_tools.e72ac208\flutter_tools_chrome_device.27c236a9\Default\shared_proto_db/MANIFEST-000001
+2024/10/17-15:55:24.735 988 Recovering log #19
+2024/10/17-15:55:24.737 988 Reusing old log C:\Users\Dastin\AppData\Local\Temp\flutter_tools.e72ac208\flutter_tools_chrome_device.27c236a9\Default\shared_proto_db/000019.log 
+2024/10/17-15:55:24.738 988 Delete type=0 #3
+2024/10/17-15:55:24.738 988 Delete type=0 #4
+2024/10/17-15:55:24.738 988 Delete type=0 #7
+2024/10/17-15:55:24.738 988 Delete type=2 #8
+2024/10/17-15:55:24.738 988 Delete type=0 #10
+2024/10/17-15:55:24.738 988 Delete type=2 #11
+2024/10/17-15:55:24.738 988 Delete type=0 #13
+2024/10/17-15:55:24.738 988 Delete type=2 #14
+2024/10/17-15:55:24.739 988 Delete type=0 #16
+2024/10/17-15:55:24.739 988 Delete type=2 #17

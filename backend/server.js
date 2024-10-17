@@ -3,9 +3,12 @@ const express = require('express');
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 const authRoutes = require('./routes/auth');
-const surveyRoutes = require('./routes/survey'); // Import survey routes
+const surveyRoutes = require('./routes/survey');
 const profileRoutes = require('./routes/profile');
 const postRoutes = require('./routes/post');
+const userRoutes = require('./routes/users');
+const messageRoutes = require('./routes/message'); // Adjust path if necessary
+ // Import the users route
 const cors = require('cors');
 
 // Load environment variables
@@ -22,11 +25,13 @@ app.use(cors({
 // Middleware to parse JSON requests
 app.use(express.json());
 
-// Use the authentication, survey, profile, and post routes
+// Use the authentication, survey, profile, post, and user routes
 app.use('/api/auth', authRoutes);
-app.use('/api/survey', surveyRoutes); // Use survey routes for interest handling
+app.use('/api/survey', surveyRoutes);
 app.use('/api/profile', profileRoutes);
-app.use('/api/posts', postRoutes); // Add post routes
+app.use('/api/posts', postRoutes);
+app.use('/api/users', userRoutes);
+app.use('/api/messages', messageRoutes); // Add this line for user routes
 
 // Connect to MongoDB
 mongoose.connect(process.env.MONGO_URI, {
