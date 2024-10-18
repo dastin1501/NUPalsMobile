@@ -30,6 +30,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
       if (response.statusCode == 200) {
         final userProfile = jsonDecode(response.body);
+        print(userProfile);  // Debug print to check the response
 
         setState(() {
           _isFollowing = userProfile['followers'] != null &&
@@ -38,7 +39,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           // Check if this profile belongs to the current user
           _isOwnProfile = userProfile['_id'] == widget.userId;
         });
-        
+
         return userProfile;
       } else {
         throw Exception('Failed to load profile: ${response.statusCode}');

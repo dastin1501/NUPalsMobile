@@ -29,7 +29,7 @@ const fuseOptions = {
 
 // Stop words to filter out
 const stopWords = new Set([
-   "i", "me", "my", "mine", "you", "your", "yours", "he", "him", "his",
+   "i", "am", "me", "my", "mine", "you", "your", "yours", "he", "him", "his",
     "she", "her", "hers", "it", "its", "we", "us", "our", "ours", "they",
     "them", "their", "theirs", "that", "this", "these", "those", "and",
     "but", "or", "if", "because", "as", "at", "by", "for", "of", "with",
@@ -48,7 +48,7 @@ const stopWords = new Set([
     "puts", "call", "calls", "like", "likes", "love", "loves", "enjoy",
     "enjoys", "hate", "hates", "try", "tries", "start", "starts", "finish",
     "finishes", "play", "plays", "walk", "walks", "run", "runs", "swim",
-    "swims", "eat", "eats", "drink", "drinks", "sleep", "sleeps"
+    "swims", "eat", "eats", "drink", "drinks", "sleep", "sleeps", "interested", "interest" 
 ]);
 
 // Function to perform fuzzy matching
@@ -75,9 +75,7 @@ async function extractInterests(answers) {
         const tokenizer = new natural.WordTokenizer();
         const words = tokenizer.tokenize(combinedAnswers.toLowerCase());
 
-        const filteredWords = words.filter(word => {
-            return !stopWords.has(word);
-        });
+        const filteredWords = words.filter(word => !stopWords.has(word));
 
         const uniqueInterests = [...new Set(filteredWords)].slice(0, 3);
         specificInterests.push(...uniqueInterests);
@@ -90,7 +88,7 @@ async function extractInterests(answers) {
             parameters: { candidate_labels: categories.slice(0, 10) }
         });
 
-        if (classificationResult && classificationResult.length > 0 && classificationResult[0].labels) {
+        if (classificationResult && classificationResult[0]?.labels) {
             const topCategories = classificationResult[0].labels.slice(0, 3);
             return {
                 specificInterests: uniqueInterests,
@@ -102,13 +100,14 @@ async function extractInterests(answers) {
         }
     } catch (error) {
         console.error("Error in extractInterests:", error);
-        throw error; // Re-throw to be caught in the route handler
+        throw error;
     }
 }
 
 // Express.js setup
 const router = express.Router();
 
+// Route to analyze survey responses
 // Route to analyze survey responses
 router.post('/analyze', async (req, res) => {
     const { userId, surveyResponse } = req.body;
@@ -123,8 +122,8 @@ router.post('/analyze', async (req, res) => {
 
         // Save the survey response and analysis result to the database
         const newSurveyResponse = new SurveyResponse({
-            userId: userId,
-            surveyResponse: surveyResponse,
+            userId,
+            surveyResponse,
             analysisResult: {
                 specificInterests: analysis.specificInterests,
                 topCategories: analysis.topCategories,
@@ -134,9 +133,9 @@ router.post('/analyze', async (req, res) => {
 
         await newSurveyResponse.save();
 
-        // Update the user's custom interests with specific interests
+        // Update the user's custom interests
         await User.findByIdAndUpdate(userId, {
-            $addToSet: { customInterests: { $each: analysis.specificInterests } } // Use $addToSet to avoid duplicates
+            $set: { customInterests: analysis.specificInterests } // Replace interests
         });
 
         return res.status(200).json({
@@ -146,8 +145,9 @@ router.post('/analyze', async (req, res) => {
         });
     } catch (error) {
         console.error("Error analyzing survey response:", error);
-        return res.status(500).json({ error: 'Internal server error', details: error.message });
+        return res.status(500).json({ error: 'Internal server error' });
     }
 });
+
 
 module.exports = router;

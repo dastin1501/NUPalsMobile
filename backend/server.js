@@ -1,15 +1,13 @@
-// server.js
 const express = require('express');
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
+const cors = require('cors');
 const authRoutes = require('./routes/auth');
 const surveyRoutes = require('./routes/survey');
 const profileRoutes = require('./routes/profile');
 const postRoutes = require('./routes/post');
 const userRoutes = require('./routes/users');
-const messageRoutes = require('./routes/message'); // Adjust path if necessary
- // Import the users route
-const cors = require('cors');
+const messageRoutes = require('./routes/message'); // Add this line for messages
 
 // Load environment variables
 dotenv.config();
@@ -19,7 +17,7 @@ const app = express();
 
 // Enable CORS
 app.use(cors({
-  origin: '*', // Adjust this if needed
+  origin: '*', // Adjust as necessary
 }));
 
 // Middleware to parse JSON requests
@@ -31,14 +29,14 @@ app.use('/api/survey', surveyRoutes);
 app.use('/api/profile', profileRoutes);
 app.use('/api/posts', postRoutes);
 app.use('/api/users', userRoutes);
-app.use('/api/messages', messageRoutes); // Add this line for user routes
+app.use('/api/messages', messageRoutes); // Add this line for message routes
 
 // Connect to MongoDB
 mongoose.connect(process.env.MONGO_URI, {
   serverSelectionTimeoutMS: 5000,
 })
-.then(() => console.log('MongoDB connected'))
-.catch((err) => console.error('MongoDB connection error:', err));
+  .then(() => console.log('MongoDB connected'))
+  .catch((err) => console.error('MongoDB connection error:', err));
 
 // Basic route for testing server
 app.get('/', (req, res) => {

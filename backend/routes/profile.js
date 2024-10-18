@@ -26,13 +26,13 @@ const upload = multer({ storage });
 
 // Register a new user
 router.post('/', upload.single('profileImage'), async (req, res) => {
-  const { firstName, lastName, email, password, username, age, college, yearLevel } = req.body;
+  const { firstName, lastName, email, password, username, age, college, yearLevel, customInterests, categorizedInterests } = req.body;
   const profileImage = req.file ? req.file.path : undefined;
 
   // Log the incoming request body
   console.log('Incoming Request Body:', req.body);
 
-  // Validate required fields and log missing ones
+  // Validate required fields
   const requiredFields = { firstName, lastName, email, password, username, age, college, yearLevel };
   for (const [key, value] of Object.entries(requiredFields)) {
     if (!value) {
@@ -60,6 +60,8 @@ router.post('/', upload.single('profileImage'), async (req, res) => {
       college,
       yearLevel,
       profileImage,
+      customInterests: customInterests || [],  // Ensure it's set
+      categorizedInterests: categorizedInterests || [] // Ensure it's set
     });
 
     await newUser.save();
@@ -80,6 +82,8 @@ router.get('/:userId', async (req, res) => {
     if (!user) {
       return res.status(404).json({ msg: 'User not found' });
     }
+    
+    console.log('Fetched User:', user); // Log the fetched user
     res.json(user);
   } catch (err) {
     console.error(err);
@@ -89,21 +93,26 @@ router.get('/:userId', async (req, res) => {
 
 // Update user profile with image upload
 router.post('/:userId/update', upload.single('profileImage'), async (req, res) => {
-  const { username, age, college, yearLevel, bio } = req.body;
+  const { username, age, college, yearLevel, bio, customInterests, categorizedInterests } = req.body;
   const profileImage = req.file ? req.file.path : undefined;
 
   try {
-    let user = await User.findById(req.params.userId);
+    const user = await User.findById(req.params.userId);
     if (!user) {
       return res.status(404).json({ msg: 'User not found' });
     }
 
-    user = await User.findByIdAndUpdate(
-      req.params.userId,
-      { $set: { username, age, college, yearLevel, bio, profileImage } },
-      { new: true }
-    );
+    // Update user fields, preserving existing values if not provided
+    user.username = username || user.username;
+    user.age = age || user.age;
+    user.college = college || user.college;
+    user.yearLevel = yearLevel || user.yearLevel;
+    user.bio = bio || user.bio;
+    user.profileImage = profileImage || user.profileImage;
+    user.customInterests = customInterests || user.customInterests;
+    user.categorizedInterests = categorizedInterests || user.categorizedInterests;
 
+    await user.save();
     res.json(user);
   } catch (err) {
     console.error(err);
