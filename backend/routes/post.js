@@ -15,7 +15,13 @@ router.get('/', async (req, res) => {
 // Route to get a single post with its details
 router.get('/:id', async (req, res) => {
   try {
-    const post = await Post.findById(req.params.id).populate('userId', 'email');
+    const post = await Post.findById(req.params.id)
+      .populate('userId', 'email firstName lastName') // Populate the userId to get email, firstName, and lastName
+      .populate({
+        path: 'comments.userId', // Populate userId in comments
+        select: 'firstName lastName' // Select firstName and lastName from User model
+      });
+ 
     if (!post) return res.status(404).json({ message: 'Post not found' });
     res.status(200).json(post);
   } catch (err) {

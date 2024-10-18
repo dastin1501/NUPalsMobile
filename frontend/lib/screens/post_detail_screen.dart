@@ -152,28 +152,28 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
             ),
             SizedBox(height: 8),
             Expanded(
-              child: ListView.builder(
-                itemCount: comments.length,
-                itemBuilder: (context, index) {
-                  final comment = comments[index];
-                  return ListTile(
-                    contentPadding: EdgeInsets.symmetric(vertical: 8.0),
-                    leading: CircleAvatar(
-                      backgroundColor: nuYellow,
-                      child: Icon(Icons.person, color: nuBlue),
-                    ),
-                    title: Text(
-                      comment['userId']['email'], // Display the commenter's email
-                      style: TextStyle(color: nuYellow, fontWeight: FontWeight.bold),
-                    ),
-                    subtitle: Text(
-                      comment['text'],
-                      style: TextStyle(color: nuWhite),
-                    ),
-                  );
-                },
-              ),
-            ),
+  child: ListView.builder(
+    itemCount: comments.length,
+    itemBuilder: (context, index) {
+      final comment = comments[index];
+      return ListTile(
+        contentPadding: EdgeInsets.symmetric(vertical: 8.0),
+        leading: CircleAvatar(
+          backgroundColor: nuYellow,
+          child: Icon(Icons.person, color: nuBlue),
+        ),
+        title: Text(
+          '${comment['userId']['firstName']} ${comment['userId']['lastName']}', // Display first and last name
+          style: TextStyle(color: nuYellow, fontWeight: FontWeight.bold),
+        ),
+        subtitle: Text(
+          comment['text'],
+          style: TextStyle(color: nuWhite),
+        ),
+      );
+    },
+  ),
+),
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 8.0),
               child: TextField(

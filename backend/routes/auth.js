@@ -3,6 +3,7 @@ const bcrypt = require('bcrypt');
 const nodemailer = require('nodemailer');
 const crypto = require('crypto');
 const User = require('../models/User');
+const Log = require('../models/log');
 const router = express.Router();
 
 // Temporary store for email verification codes
@@ -110,18 +111,25 @@ router.post('/register', async (req, res) => {
 // Login route
 router.post('/login', async (req, res) => {
   const { email, password } = req.body;
-
+ 
   try {
     const user = await User.findOne({ email });
     if (!user) {
       return res.status(400).json({ message: 'User not found', userId: null });
     }
-
+ 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(400).json({ message: 'Invalid credentials', userId: null });
     }
-
+ 
+    await Log.create({
+      level: 'info',
+      message: 'User logged in',
+      studentId: user._id, // Log the user's ID
+      studentName: user.email, // Log the email
+    });
+ 
     return res.status(200).json({
       userId: user._id.toString(),
       message: 'Login successful',
@@ -131,5 +139,5 @@ router.post('/login', async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 });
-
+ 
 module.exports = router;

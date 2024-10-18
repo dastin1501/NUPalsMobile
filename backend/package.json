@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon server.js"
   },
   "keywords": [],
   "author": "",
@@ -24,6 +25,7 @@
     "natural": "^8.0.1",
     "node-kmeans": "^1.1.9",
     "nodemailer": "^6.9.15",
+    "nodemon": "^3.1.7",
     "openai": "^4.65.0",
     "rake-js": "^0.1.1",
     "stopword": "^3.1.1"
