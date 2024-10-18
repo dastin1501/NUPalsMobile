@@ -16,13 +16,37 @@ class _SearchScreenState extends State<SearchScreen> {
   final TextEditingController _searchController = TextEditingController();
   List<Map<String, dynamic>> _matches = [];
   List<Map<String, dynamic>> _allUsers = [];
+  List<String> _userInterests = [];
   bool _isSpecificInterest = true;
   bool _isLoading = true; // Loading indicator
 
   @override
   void initState() {
     super.initState();
+    _fetchUserInterests(); // Fetch the user's interests first
     _fetchAllUsers();
+  }
+
+  Future<void> _fetchUserInterests() async {
+    try {
+      final response = await http.get(Uri.parse('http://localhost:5000/api/users/profile/${widget.userId}'));
+
+      if (response.statusCode == 200) {
+        final user = jsonDecode(response.body);
+        setState(() {
+          _userInterests = List<String>.from(user['customInterests']); // Store user's interests
+        });
+      } else {
+        throw Exception('Failed to load user interests');
+      }
+    } catch (error) {
+      setState(() {
+        _isLoading = false; // Stop loading
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to load user interests: ${error.toString()}')),
+      );
+    }
   }
 
   Future<void> _fetchAllUsers() async {
@@ -36,7 +60,7 @@ class _SearchScreenState extends State<SearchScreen> {
           _allUsers = users.cast<Map<String, dynamic>>()
               .where((user) => user['_id'] != widget.userId)
               .toList();
-          _matches = _allUsers; // Initialize matches with all users except the current user
+          _matches = _filterUsersByCommonInterests(); // Initialize matches based on common interests
           _isLoading = false; // Stop loading
         });
       } else {
@@ -52,25 +76,11 @@ class _SearchScreenState extends State<SearchScreen> {
     }
   }
 
-  List<Map<String, dynamic>> _sortUsersByInterestMatches(String searchText) {
+  List<Map<String, dynamic>> _filterUsersByCommonInterests() {
     return _allUsers.where((user) {
-      return user['customInterests']
-          .any((interest) => interest.toLowerCase().contains(searchText.toLowerCase()));
-    }).toList()
-      ..sort((a, b) {
-        int matchCountA = a['customInterests']
-            .where((interest) => interest.toLowerCase().contains(searchText.toLowerCase()))
-            .length;
-        int matchCountB = b['customInterests']
-            .where((interest) => interest.toLowerCase().contains(searchText.toLowerCase()))
-            .length;
-        return matchCountB.compareTo(matchCountA);
-      });
-  }
-
-  List<Map<String, dynamic>> _filterUsersByCategory(String category) {
-    return _allUsers.where((user) {
-      return user['categorizedInterests'].contains(category);
+      // Check if there is at least one matching interest
+      return user['customInterests'].any((interest) => 
+          _userInterests.contains(interest));
     }).toList();
   }
 
@@ -97,11 +107,13 @@ class _SearchScreenState extends State<SearchScreen> {
               ),
               onChanged: (value) {
                 setState(() {
+                  // For specific interest, filter based on user input
                   if (_isSpecificInterest) {
-                    _matches = _sortUsersByInterestMatches(value);
-                  } else {
-                    _matches = _filterUsersByCategory(value);
-                  }
+                    _matches = _allUsers.where((user) {
+                      return user['customInterests']
+                          .any((interest) => interest.toLowerCase().contains(value.toLowerCase()));
+                    }).toList();
+                  } // For categorized interests, implement your existing logic if needed
                 });
               },
             ),
@@ -191,23 +203,6 @@ class _SearchScreenState extends State<SearchScreen> {
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Failed to follow user')),
-      );
-    }
-  }
-
-  Future<void> unfollowUser(String userIdToUnfollow) async {
-    final response = await http.post(
-      Uri.parse('http://localhost:5000/api/profile/${widget.userId}/unfollow'),
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({'followId': userIdToUnfollow}),
-    );
-    if (response.statusCode == 200) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('User unfollowed')),
-      );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to unfollow user')),
       );
     }
   }

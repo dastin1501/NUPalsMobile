@@ -2,10 +2,11 @@ const express = require('express');
 const router = express.Router();
 const User = require('../models/User'); // Adjust the path if needed
 
-// GET all users
+// GET all users with student role
 router.get('/', async (req, res) => {
   try {
-    const users = await User.find(); // Fetch all users from the database
+    // Fetch all users with role 'student' from the database
+    const users = await User.find({ role: 'student' }); // Adjust the field name if your role field is named differently
     res.json(users); // Send the users data as JSON
   } catch (error) {
     console.error('Error fetching users:', error);
