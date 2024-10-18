@@ -1,17 +1,15 @@
-2024/10/18-10:46:05.565 d30 Reusing MANIFEST C:\Users\Dastin\AppData\Local\Temp\flutter_tools.b65f0d8c\flutter_tools_chrome_device.3255bf3b\Default\shared_proto_db/MANIFEST-000001
-2024/10/18-10:46:05.565 d30 Recovering log #23
-2024/10/18-10:46:05.567 d30 Reusing old log C:\Users\Dastin\AppData\Local\Temp\flutter_tools.b65f0d8c\flutter_tools_chrome_device.3255bf3b\Default\shared_proto_db/000023.log 
-2024/10/18-10:46:05.568 d30 Delete type=0 #3
-2024/10/18-10:46:05.568 d30 Delete type=0 #4
-2024/10/18-10:46:05.568 d30 Delete type=0 #7
-2024/10/18-10:46:05.568 d30 Delete type=2 #8
-2024/10/18-10:46:05.568 d30 Delete type=0 #10
-2024/10/18-10:46:05.568 d30 Delete type=2 #11
-2024/10/18-10:46:05.568 d30 Delete type=0 #13
-2024/10/18-10:46:05.568 d30 Delete type=2 #14
-2024/10/18-10:46:05.569 d30 Delete type=0 #16
-2024/10/18-10:46:05.569 d30 Delete type=2 #17
-2024/10/18-10:46:05.569 d30 Delete type=0 #19
-2024/10/18-10:49:11.888 1fb0 Level-0 table #27: started
-2024/10/18-10:49:11.901 1fb0 Level-0 table #27: 132160 bytes OK
-2024/10/18-10:49:11.904 1fb0 Delete type=0 #23
+2024/10/18-11:03:48.342 5a70 Reusing MANIFEST C:\Users\Dastin\AppData\Local\Temp\flutter_tools.99b289bc\flutter_tools_chrome_device.4fad9089\Default\shared_proto_db/MANIFEST-000001
+2024/10/18-11:03:48.343 5a70 Recovering log #26
+2024/10/18-11:03:48.344 5a70 Reusing old log C:\Users\Dastin\AppData\Local\Temp\flutter_tools.99b289bc\flutter_tools_chrome_device.4fad9089\Default\shared_proto_db/000026.log 
+2024/10/18-11:03:48.344 5a70 Delete type=0 #3
+2024/10/18-11:03:48.345 5a70 Delete type=0 #4
+2024/10/18-11:03:48.345 5a70 Delete type=0 #7
+2024/10/18-11:03:48.345 5a70 Delete type=2 #8
+2024/10/18-11:03:48.345 5a70 Delete type=0 #10
+2024/10/18-11:03:48.345 5a70 Delete type=2 #11
+2024/10/18-11:03:48.345 5a70 Delete type=0 #13
+2024/10/18-11:03:48.345 5a70 Delete type=2 #14
+2024/10/18-11:03:48.346 5a70 Delete type=0 #16
+2024/10/18-11:03:48.346 5a70 Delete type=2 #17
+2024/10/18-11:03:48.346 5a70 Delete type=0 #19
+2024/10/18-11:03:48.346 5a70 Delete type=0 #23

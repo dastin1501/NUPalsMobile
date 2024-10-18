@@ -3,55 +3,61 @@ import 'package:frontend/utils/constants.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:frontend/utils/shared_preferences.dart';
-
+ 
 class LoginScreen extends StatefulWidget {
   @override
   _LoginScreenState createState() => _LoginScreenState();
 }
-
+ 
 class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-
-  Future<void> _login() async {
-    try {
-      final response = await http.post(
-        Uri.parse('http://localhost:5000/api/auth/login'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'email': _emailController.text,
-          'password': _passwordController.text,
-        }),
-      );
-
-      if (response.statusCode == 200) {
-        final responseData = jsonDecode(response.body);
-        final userId = responseData['userId'];
-
-        if (userId == null) {
-          throw Exception('User ID is null');
-        }
-
-        await SharedPreferencesService.saveUserId(userId);
-
+ 
+Future<void> _login() async {
+  try {
+    final response = await http.post(
+      Uri.parse('http://localhost:5000/api/auth/login'),
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        'email': _emailController.text,
+        'password': _passwordController.text,
+      }),
+    );
+ 
+    final responseData = jsonDecode(response.body);
+  print('Response Data: $responseData'); // Debugging line
+ 
+ 
+    if (response.statusCode == 200 && responseData['userId'] != null) {
+      final userId = responseData['userId'];
+ 
+      // Save userId to SharedPreferences
+      await SharedPreferencesService.saveUserId(userId);
+ 
+      // Navigate to main screen
+      WidgetsBinding.instance.addPostFrameCallback((_) {
         Navigator.pushReplacementNamed(
           context,
           '/main',
-          arguments: userId,
+          arguments: userId, // Passing userId as an argument
         );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Login Failed')),
-        );
-      }
-    } catch (error) {
-      print('Login error: $error');
+      });
+    } else {
+      // Show an error message if login fails
+      final errorMessage = responseData['message'] ?? 'Login Failed';
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Login error occurred')),
+        SnackBar(content: Text(errorMessage)),
       );
     }
+  } catch (error) {
+    print('Login error: $error');
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Login error occurred')),
+    );
   }
-
+}
+ 
+ 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -146,3 +152,4 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 }
+ 
