@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:frontend/screens/profile_screen.dart';
 import 'package:http/http.dart' as http;
@@ -17,31 +18,32 @@ class _SearchScreenState extends State<SearchScreen> {
   List<Map<String, dynamic>> _matches = [];
   List<Map<String, dynamic>> _allUsers = [];
   List<String> _userInterests = [];
-  bool _isSpecificInterest = true;
-  bool _isLoading = true; // Loading indicator
+  List<String> _following = [];
+  bool _isLoading = true;
+  List<String> _searchedInterests = []; // To store the searched interests
 
   @override
   void initState() {
     super.initState();
-    _fetchUserInterests(); // Fetch the user's interests first
+    _fetchUserInterests();
     _fetchAllUsers();
   }
 
   Future<void> _fetchUserInterests() async {
     try {
       final response = await http.get(Uri.parse('http://localhost:5000/api/users/profile/${widget.userId}'));
-
       if (response.statusCode == 200) {
         final user = jsonDecode(response.body);
         setState(() {
-          _userInterests = List<String>.from(user['customInterests']); // Store user's interests
+          _userInterests = List<String>.from(user['customInterests']);
+          _following = List<String>.from(user['follows'] ?? []);
         });
       } else {
         throw Exception('Failed to load user interests');
       }
     } catch (error) {
       setState(() {
-        _isLoading = false; // Stop loading
+        _isLoading = false;
       });
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Failed to load user interests: ${error.toString()}')),
@@ -52,23 +54,21 @@ class _SearchScreenState extends State<SearchScreen> {
   Future<void> _fetchAllUsers() async {
     try {
       final response = await http.get(Uri.parse('http://localhost:5000/api/users'));
-
       if (response.statusCode == 200) {
         final List<dynamic> users = jsonDecode(response.body);
         setState(() {
-          // Filter out the current user
           _allUsers = users.cast<Map<String, dynamic>>()
               .where((user) => user['_id'] != widget.userId)
               .toList();
-          _matches = _filterUsersByCommonInterests(); // Initialize matches based on common interests
-          _isLoading = false; // Stop loading
+          _matches = _getTopMatches(); // Initial matches
+          _isLoading = false;
         });
       } else {
         throw Exception('Failed to load users');
       }
     } catch (error) {
       setState(() {
-        _isLoading = false; // Stop loading
+        _isLoading = false;
       });
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Failed to load users: ${error.toString()}')),
@@ -78,11 +78,52 @@ class _SearchScreenState extends State<SearchScreen> {
 
   List<Map<String, dynamic>> _filterUsersByCommonInterests() {
     return _allUsers.where((user) {
-      // Check if there is at least one matching interest
-      return user['customInterests'].any((interest) => 
+      return user['customInterests'].any((interest) =>
           _userInterests.contains(interest));
     }).toList();
   }
+
+  List<Map<String, dynamic>> _getTopMatches() {
+    List<Map<String, dynamic>> filteredUsers = _filterUsersByCommonInterests();
+    
+    // Sort the filtered users based on the number of interest matches
+    filteredUsers.sort((a, b) {
+      int aMatches = a['customInterests']
+          .where((interest) => _userInterests.contains(interest))
+          .length;
+      int bMatches = b['customInterests']
+          .where((interest) => _userInterests.contains(interest))
+          .length;
+      return bMatches.compareTo(aMatches);
+    });
+
+    return filteredUsers.take(3).toList(); // Limit to 3 matches
+  }
+
+  void _shuffleAndRefresh() {
+  setState(() {
+    String searchText = _searchController.text.toLowerCase();
+    List<Map<String, dynamic>> filteredMatches;
+
+    // First, filter users by common interests (users with at least one matching interest)
+    filteredMatches = _filterUsersByCommonInterests();
+
+    // If there's search text, filter further by the specific interest entered
+    if (searchText.isNotEmpty) {
+      filteredMatches = filteredMatches.where((user) {
+        final List<dynamic> interests = user['customInterests'] ?? [];
+        return interests.any((interest) =>
+            interest.toString().toLowerCase().contains(searchText));
+      }).toList();
+    }
+
+    // Shuffle the filtered matches
+    filteredMatches.shuffle(Random());
+    _matches = filteredMatches.take(3).toList(); // Limit to 3 matches
+  });
+}
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -99,7 +140,7 @@ class _SearchScreenState extends State<SearchScreen> {
             TextField(
               controller: _searchController,
               decoration: InputDecoration(
-                labelText: _isSpecificInterest ? 'Search by Specific Interest' : 'Search by Category',
+                labelText: 'Search by Specific Interest',
                 prefixIcon: Icon(Icons.search),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
@@ -107,48 +148,33 @@ class _SearchScreenState extends State<SearchScreen> {
               ),
               onChanged: (value) {
                 setState(() {
-                  // For specific interest, filter based on user input
-                  if (_isSpecificInterest) {
-                    _matches = _allUsers.where((user) {
-                      return user['customInterests']
-                          .any((interest) => interest.toLowerCase().contains(value.toLowerCase()));
-                    }).toList();
-                  } // For categorized interests, implement your existing logic if needed
+                  // Split input into a list, limit to the first 3 interests
+                  _searchedInterests = _searchController.text.split(',')
+                      .map((interest) => interest.trim())
+                      .toList()
+                      .take(3)
+                      .toList();
+
+                  // Update matches based on the searched interests
+                  _matches = _filterUsersByCommonInterests().where((user) {
+                    final List<dynamic> interests = user['customInterests'] ?? [];
+                    return interests.any((interest) =>
+                        _searchedInterests.contains(interest));
+                  }).toList().take(3).toList(); // Limit to 3 matches
                 });
               },
             ),
             SizedBox(height: 10),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                ElevatedButton(
-                  onPressed: () {
-                    setState(() {
-                      _isSpecificInterest = true;
-                    });
-                  },
-                  child: Text('Specific Interest'),
-                ),
-                SizedBox(width: 10),
-                ElevatedButton(
-                  onPressed: () {
-                    setState(() {
-                      _isSpecificInterest = false;
-                    });
-                  },
-                  child: Text('Categorized Interest'),
-                ),
-              ],
-            ),
             SizedBox(height: 20),
             if (_isLoading)
-              Center(child: CircularProgressIndicator()) // Show loading indicator
+              Center(child: CircularProgressIndicator())
             else
               Expanded(
                 child: ListView.builder(
                   itemCount: _matches.length,
                   itemBuilder: (context, index) {
                     final user = _matches[index];
+                    final isFollowing = _following.contains(user['_id']);
                     return Card(
                       elevation: 4,
                       margin: const EdgeInsets.only(bottom: 16),
@@ -166,10 +192,12 @@ class _SearchScreenState extends State<SearchScreen> {
                           style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                         ),
                         trailing: IconButton(
-                          icon: Icon(Icons.person_add),
-                          onPressed: () {
-                            followUser(user['_id']);
-                          },
+                          icon: Icon(isFollowing ? Icons.check : Icons.person_add),
+                          onPressed: isFollowing
+                              ? null
+                              : () {
+                                  followUser(user['_id']);
+                                },
                         ),
                         onTap: () {
                           Navigator.push(
@@ -184,6 +212,10 @@ class _SearchScreenState extends State<SearchScreen> {
                   },
                 ),
               ),
+            ElevatedButton(
+              onPressed: _shuffleAndRefresh,
+              child: Text('Refresh Users'),
+            ),
           ],
         ),
       ),
@@ -196,13 +228,18 @@ class _SearchScreenState extends State<SearchScreen> {
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({'followId': userIdToFollow}),
     );
+
     if (response.statusCode == 200) {
+      setState(() {
+        _fetchAllUsers();
+      });
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('User followed')),
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to follow user')),
+        SnackBar(content: Text('Failed to follow user: ${response.body}')),
       );
     }
   }

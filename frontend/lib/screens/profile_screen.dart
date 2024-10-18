@@ -30,7 +30,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
       if (response.statusCode == 200) {
         final userProfile = jsonDecode(response.body);
-        print(userProfile);  // Debug print to check the response
+        print(userProfile); // Debug print to check the response
 
         setState(() {
           _isFollowing = userProfile['followers'] != null &&

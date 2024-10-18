@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const User = require('../models/User'); // Adjust the path if needed
+const Notification = require('../models/Notification'); // Import the Notification model
 
 // GET all users with student role
 router.get('/', async (req, res) => {
@@ -77,6 +78,48 @@ router.post('/update-interests/:userId', async (req, res) => {
     res.json({ message: 'Interests updated successfully', updatedUser });
   } catch (error) {
     console.error('Error updating interests:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+// POST send a follow request
+router.post('/follow', async (req, res) => {
+  const { followerId, followeeId } = req.body; // Get follower and followee IDs from the request
+
+  try {
+    // Step 1: Add follower to the followee's followers (Assuming followee has a followers array)
+    const followee = await User.findById(followeeId);
+    followee.followers.push(followerId); // Add the followerId to the followee's followers array
+    await followee.save(); // Save the followee
+
+    // Step 2: Create a notification for the follow request
+    const message = `${followerId} sent you a follow request.`; // Create notification message
+    await Notification.create({ userId: followeeId, type: 'follow_request', message }); // Create notification
+
+    res.status(200).json({ message: 'Follow request sent.' }); // Respond to the client
+  } catch (error) {
+    console.error('Error sending follow request:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+// POST create a notification for admin posts
+router.post('/notify-post', async (req, res) => {
+  const { postId, adminId } = req.body; // Assuming postId and adminId are provided
+
+  try {
+    // Step 1: Get the admin's post details (if needed)
+    const message = `Admin has posted a new update: ${postId}`; // Create notification message
+
+    // Step 2: Fetch all users
+    const users = await User.find({});
+    users.forEach(async (user) => {
+      await Notification.create({ userId: user._id, type: 'post', message }); // Create notification for each user
+    });
+
+    res.status(200).json({ message: 'Notifications sent for admin post.' });
+  } catch (error) {
+    console.error('Error sending notifications for admin post:', error);
     res.status(500).json({ message: 'Internal server error' });
   }
 });

@@ -7,7 +7,8 @@ const surveyRoutes = require('./routes/survey');
 const profileRoutes = require('./routes/profile');
 const postRoutes = require('./routes/post');
 const userRoutes = require('./routes/users');
-const messageRoutes = require('./routes/message'); // Add this line for messages
+const messageRoutes = require('./routes/message');
+const notificationRoutes = require('./routes/notifications'); // Add this line for messages
 
 // Load environment variables
 dotenv.config();
@@ -29,7 +30,8 @@ app.use('/api/survey', surveyRoutes);
 app.use('/api/profile', profileRoutes);
 app.use('/api/posts', postRoutes);
 app.use('/api/users', userRoutes);
-app.use('/api/messages', messageRoutes); // Add this line for message routes
+app.use('/api/messages', messageRoutes);
+app.use('/api/notifications', notificationRoutes); // Add this line for message routes
 
 // Connect to MongoDB
 mongoose.connect(process.env.MONGO_URI, {

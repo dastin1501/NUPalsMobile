@@ -11,23 +11,24 @@ import 'package:frontend/screens/survey_screen.dart';
 import 'package:frontend/screens/register_screen.dart';
 import 'package:frontend/screens/messaging_screen.dart'; // Adjust the path as necessary
 import 'package:frontend/screens/inbox_screen.dart'; // Import the Inbox Screen
+import 'package:frontend/screens/notifications_screen.dart'; // Import Notifications Screen
 import 'package:frontend/utils/shared_preferences.dart';
 import 'dart:async';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
- 
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized(); // Ensure binding is initialized
   final userId = await SharedPreferencesService.getUserId(); // Load user ID
- 
+
   runApp(MyApp(userId: userId));
 }
- 
+
 class MyApp extends StatelessWidget {
   final String? userId;
- 
+
   MyApp({this.userId});
- 
+
   @override
   Widget build(BuildContext context) {
     return ScreenUtilInit(
@@ -36,51 +37,51 @@ class MyApp extends StatelessWidget {
         return MaterialApp(
           title: 'Social Media App',
           theme: ThemeData(primarySwatch: Colors.blue),
-initialRoute: userId != null ? '/main' : '/signup',
- 
-        routes: {
-  '/signup': (context) => SignUpScreen(),
-  '/login': (context) => LoginScreen(),
-  '/': (context) => LoginScreen(),
-  '/forgotpassword': (context) => ForgotPasswordScreen(),
-  '/main': (context) {
-    final userId = ModalRoute.of(context)!.settings.arguments as String?;
-    if (userId == null) {
-      // If userId is null, redirect to login
-      WidgetsBinding.instance!.addPostFrameCallback((_) {
-        Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
-      });
-      return Container(); // Return an empty container or a loading indicator
-    }
-    return MainScreen(userId: userId); // Safe to pass userId now
-  },
-  '/splash': (context) => SplashScreen(),
-  '/register': (context) => RegisterScreen(email: ''),
-  '/survey': (context) => SurveyScreen(email: '', userId: ''),
-  '/messages': (context) => MessagingScreen(userId: '', otherUserId: ''),
-  '/inbox': (context) => InboxScreen(userId: userId!), // Add InboxScreen route
-},
+          initialRoute: userId != null ? '/main' : '/signup',
+          routes: {
+            '/signup': (context) => SignUpScreen(),
+            '/login': (context) => LoginScreen(),
+            '/': (context) => LoginScreen(),
+            '/forgotpassword': (context) => ForgotPasswordScreen(),
+            '/main': (context) {
+              final userId = ModalRoute.of(context)!.settings.arguments as String?;
+              if (userId == null) {
+                // If userId is null, redirect to login
+                WidgetsBinding.instance!.addPostFrameCallback((_) {
+                  Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
+                });
+                return Container(); // Return an empty container or a loading indicator
+              }
+              return MainScreen(userId: userId); // Safe to pass userId now
+            },
+            '/splash': (context) => SplashScreen(),
+            '/register': (context) => RegisterScreen(email: ''),
+            '/survey': (context) => SurveyScreen(email: '', userId: ''),
+            '/messages': (context) => MessagingScreen(userId: '', otherUserId: ''),
+            '/inbox': (context) => InboxScreen(userId: userId!), // Add InboxScreen route
+            '/notifications': (context) => NotificationScreen(userId: userId!), // Add NotificationsScreen route
+          },
         );
       },
     );
   }
 }
- 
+
 class MainScreen extends StatefulWidget {
   final String userId;
- 
+
   MainScreen({required this.userId});
- 
+
   @override
   _MainScreenState createState() => _MainScreenState();
 }
- 
+
 class _MainScreenState extends State<MainScreen> {
   int _currentIndex = 0;
   late String _userId;
- 
+
   final List<Widget> _children = [];
- 
+
   @override
   void initState() {
     super.initState();
@@ -92,22 +93,43 @@ class _MainScreenState extends State<MainScreen> {
       InboxScreen(userId: _userId), // Add InboxScreen as a child
     ]);
   }
- 
+
   void onTabTapped(int index) {
     setState(() {
       _currentIndex = index;
     });
   }
- 
+
+ // Your logout function
 Future<void> logout() async {
-  await SharedPreferencesService.removeUserId();
-  final userIdAfterLogout = await SharedPreferencesService.getUserId();
-  print('User ID after logout: $userIdAfterLogout'); // Should print null
-  Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
+  final userId = await SharedPreferencesService.getUserId(); // Get the current user ID
+ 
+  // Make the logout request to the backend
+  final response = await http.post(
+    Uri.parse('http://localhost:5000/api/auth/logout'), // Replace with your backend API URL
+    headers: {'Content-Type': 'application/json'},
+    body: json.encode({
+      'userId': userId,
+    }),
+  );
+ 
+  if (response.statusCode == 200) {
+    // Remove the user ID from SharedPreferences only after successful logout
+    await SharedPreferencesService.removeUserId();
+ 
+    // Optionally log the user ID after removing it
+    final userIdAfterLogout = await SharedPreferencesService.getUserId();
+    print('User ID after logout: $userIdAfterLogout'); // Should print null
+ 
+    // Redirect to the login screen
+    Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
+  } else {
+    // Handle logout failure (optional)
+    print('Failed to log out: ${response.body}');
+  }
 }
  
- 
- 
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -158,7 +180,12 @@ Future<void> logout() async {
               leading: Icon(Icons.notifications),
               title: Text('Notifications'),
               onTap: () {
-                // Navigate to Notifications screen
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => NotificationScreen(userId: _userId), // Navigate to Notifications Screen
+                  ),
+                );
               },
             ),
             ListTile(
@@ -205,7 +232,7 @@ Future<void> logout() async {
     );
   }
 }
- 
+
 // Function to register user
 Future<void> registerUser(BuildContext context, String email, String username, String password, String age, String college, String yearLevel, String bio) async {
   final response = await http.post(
@@ -221,7 +248,7 @@ Future<void> registerUser(BuildContext context, String email, String username, S
       'bio': bio,
     }),
   );
- 
+
   if (response.statusCode == 201) {
     // Registration successful, save user ID
     final data = json.decode(response.body);

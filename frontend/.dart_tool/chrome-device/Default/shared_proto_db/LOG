@@ -1,15 +1,28 @@
-2024/10/18-16:34:19.510 6e4 Reusing MANIFEST C:\Users\Dastin\AppData\Local\Temp\flutter_tools.6ebd14c1\flutter_tools_chrome_device.891caafb\Default\shared_proto_db/MANIFEST-000001
-2024/10/18-16:34:19.511 6e4 Recovering log #26
-2024/10/18-16:34:19.512 6e4 Reusing old log C:\Users\Dastin\AppData\Local\Temp\flutter_tools.6ebd14c1\flutter_tools_chrome_device.891caafb\Default\shared_proto_db/000026.log 
-2024/10/18-16:34:19.512 6e4 Delete type=0 #3
-2024/10/18-16:34:19.512 6e4 Delete type=0 #4
-2024/10/18-16:34:19.513 6e4 Delete type=0 #7
-2024/10/18-16:34:19.513 6e4 Delete type=2 #8
-2024/10/18-16:34:19.513 6e4 Delete type=0 #10
-2024/10/18-16:34:19.513 6e4 Delete type=2 #11
-2024/10/18-16:34:19.513 6e4 Delete type=0 #13
-2024/10/18-16:34:19.513 6e4 Delete type=2 #14
-2024/10/18-16:34:19.513 6e4 Delete type=0 #16
-2024/10/18-16:34:19.513 6e4 Delete type=2 #17
-2024/10/18-16:34:19.513 6e4 Delete type=0 #19
-2024/10/18-16:34:19.513 6e4 Delete type=0 #23
+2024/10/19-03:28:25.175 8590 Reusing MANIFEST C:\Users\Dastin\AppData\Local\Temp\flutter_tools.65765a09\flutter_tools_chrome_device.55b586dd\Default\shared_proto_db/MANIFEST-000001
+2024/10/19-03:28:25.175 8590 Recovering log #29
+2024/10/19-03:28:25.177 8590 Reusing old log C:\Users\Dastin\AppData\Local\Temp\flutter_tools.65765a09\flutter_tools_chrome_device.55b586dd\Default\shared_proto_db/000029.log 
+2024/10/19-03:28:25.178 8590 Delete type=0 #3
+2024/10/19-03:28:25.178 8590 Delete type=0 #4
+2024/10/19-03:28:25.178 8590 Delete type=0 #7
+2024/10/19-03:28:25.178 8590 Delete type=2 #8
+2024/10/19-03:28:25.178 8590 Delete type=0 #10
+2024/10/19-03:28:25.178 8590 Delete type=2 #11
+2024/10/19-03:28:25.179 8590 Delete type=0 #13
+2024/10/19-03:28:25.179 8590 Delete type=2 #14
+2024/10/19-03:28:25.184 8590 Delete type=0 #16
+2024/10/19-03:28:25.184 8590 Delete type=2 #17
+2024/10/19-03:28:25.184 8590 Delete type=0 #19
+2024/10/19-03:28:25.184 8590 Delete type=0 #23
+2024/10/19-03:28:25.184 8590 Delete type=0 #26
+2024/10/19-03:28:37.875 8590 Level-0 table #33: started
+2024/10/19-03:28:37.879 8590 Level-0 table #33: 134816 bytes OK
+2024/10/19-03:28:37.880 8590 Delete type=0 #29
+2024/10/19-03:28:37.881 8590 Compacting 4@0 + 1@1 files
+2024/10/19-03:28:37.885 8590 Generated table #34@0: 1377 keys, 160231 bytes
+2024/10/19-03:28:37.885 8590 Compacted 4@0 + 1@1 files => 160231 bytes
+2024/10/19-03:28:37.886 8590 compacted to: files[ 0 1 1 0 0 0 0 ]
+2024/10/19-03:28:37.887 8590 Delete type=2 #21
+2024/10/19-03:28:37.887 8590 Delete type=2 #24
+2024/10/19-03:28:37.887 8590 Delete type=2 #27
+2024/10/19-03:28:37.887 8590 Delete type=2 #30
+2024/10/19-03:28:37.887 8590 Delete type=2 #33

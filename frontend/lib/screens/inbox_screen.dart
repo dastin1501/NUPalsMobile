@@ -22,7 +22,6 @@ class _InboxScreenState extends State<InboxScreen> {
   }
 
   Future<void> _fetchMutualFollowers() async {
-    // Fetch mutual followers for the user
     try {
       final response = await http.get(
         Uri.parse('http://localhost:5000/api/users/mutual-followers/${widget.userId}'),
@@ -60,6 +59,7 @@ class _InboxScreenState extends State<InboxScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text('Inbox'),
+        backgroundColor: Colors.blueAccent,
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -67,10 +67,30 @@ class _InboxScreenState extends State<InboxScreen> {
           itemCount: _mutualFollowers.length,
           itemBuilder: (context, index) {
             final user = _mutualFollowers[index];
-            return ListTile(
-              title: Text(user['username']), // Display the username of the mutual follower
-              subtitle: Text(user['lastMessage'] ?? 'No messages yet'), // Display last message if available
-              onTap: () => _navigateToMessaging(user['userId']), // Navigate to MessagingScreen
+            return Card(
+              elevation: 4,
+              margin: const EdgeInsets.symmetric(vertical: 8.0),
+              child: ListTile(
+                contentPadding: const EdgeInsets.all(16.0),
+                title: Text(
+                  user['username'],
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                ),
+                subtitle: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(user['lastMessage'] ?? 'No messages yet'),
+                    SizedBox(height: 4),
+                    Text(
+                      user['timestamp'] != null
+                          ? DateTime.parse(user['timestamp']).toLocal().toString().split(' ')[0] // Display date only
+                          : '',
+                      style: TextStyle(fontSize: 12, color: Colors.grey),
+                    ),
+                  ],
+                ),
+                onTap: () => _navigateToMessaging(user['userId']),
+              ),
             );
           },
         ),

@@ -149,30 +149,36 @@ router.post('/:userId/follow', async (req, res) => {
 });
 
 // Unfollow a user
-router.post('/:userId/unfollow', async (req, res) => {
-  const { followId } = req.body;
+// POST follow a user
+router.post('/:userId/follow', async (req, res) => {
+  const { userId } = req.params;
+  const { followId } = req.body; // This is the ID of the user to follow
+
   try {
-    const user = await User.findById(req.params.userId);
-    const unfollowUser = await User.findById(followId);
+    // Find the user who is following and the user being followed
+    const follower = await User.findById(userId);
+    const followedUser = await User.findById(followId);
 
-    if (!user || !unfollowUser) {
-      return res.status(404).json({ msg: 'User not found' });
+    if (!follower || !followedUser) {
+      return res.status(404).json({ message: 'User not found' });
     }
 
-    if (user.following.includes(followId)) {
-      user.following = user.following.filter(id => id.toString() !== followId);
-      unfollowUser.followers = unfollowUser.followers.filter(id => id.toString() !== req.params.userId);
-
-      await user.save();
-      await unfollowUser.save();
-
-      res.json({ msg: 'User unfollowed' });
-    } else {
-      res.status(400).json({ msg: 'Not following this user' });
+    // Check if already following
+    if (follower.follows.includes(followId)) {
+      return res.status(400).json({ message: 'Already following this user' });
     }
-  } catch (err) {
-    console.error(err);
-    res.status(500).send('Server Error');
+
+    // Update both users
+    follower.follows.push(followId);
+    followedUser.followers.push(userId);
+
+    await follower.save();
+    await followedUser.save();
+
+    res.status(200).json({ message: 'User followed successfully' });
+  } catch (error) {
+    console.error('Error following user:', error);
+    res.status(500).json({ message: 'Internal server error' });
   }
 });
 

@@ -145,4 +145,31 @@ router.post('/login', async (req, res) => {
   }
 });
  
+//logout
+router.post('/logout', async (req, res) => {
+  const { userId } = req.body; // Only send userId in the request body
+ 
+  try {
+    // Fetch the user based on userId
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+ 
+    // Log the logout action with the user's email
+    await Log.create({
+      level: 'info',
+      message: 'User logged out',
+      studentId: userId,
+      studentName: user.email, // Use user's email directly
+    });
+ 
+    // Handle any other logout logic, if necessary
+    res.status(200).json({ message: 'User logged out successfully' });
+  } catch (error) {
+    console.error(error); // Log the error for debugging
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 module.exports = router;

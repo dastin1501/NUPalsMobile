@@ -114,14 +114,19 @@ class _SurveyScreenState extends State<SurveyScreen> {
                 style: TextStyle(fontSize: 16, color: Colors.black),
               ),
               SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.of(context).pop(); // Close the modal
-                  Navigator.of(context).pushReplacementNamed('/main'); // Navigate to Main screen
-                },
-                style: ElevatedButton.styleFrom(backgroundColor: nuBlue),
-                child: Text('Go to Homepage'),
-              ),
+            ElevatedButton(
+ onPressed: () async {
+  Navigator.of(context).pop(); // Close the modal
+  final userId = await SharedPreferencesService.getUserId(); // Get userId from shared preferences
+ 
+  Navigator.of(context).pushReplacementNamed(
+    '/main',
+    arguments: userId, // Pass the retrieved userId
+  );
+},
+  style: ElevatedButton.styleFrom(backgroundColor: nuBlue),
+  child: Text('Go to Homepage'),
+),
               SizedBox(height: 20),
             ],
           ),

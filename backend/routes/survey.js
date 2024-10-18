@@ -5,6 +5,7 @@ const User = require('../models/User');
 const SurveyResponse = require('../models/surveyResponse');
 const Fuse = require('fuse.js');
 const natural = require('natural');
+const Log = require('../models/log');
 
 // Initialize the tagger
 const tagger = new natural.BrillPOSTagger();
@@ -133,10 +134,24 @@ router.post('/analyze', async (req, res) => {
 
         await newSurveyResponse.save();
 
-        // Update the user's custom interests
-        await User.findByIdAndUpdate(userId, {
-            $set: { customInterests: analysis.specificInterests } // Replace interests
-        });
+     // Update the user's custom interests
+     await User.findByIdAndUpdate(userId, {
+        $set: { customInterests: analysis.specificInterests } // Replace interests
+    });
+
+     // Fetch the user's email based on userId
+const user = await User.findById(userId);
+if (!user) {
+  return res.status(404).json({ error: 'User not found' });
+}
+
+// Log the user interest update action with the fetched email
+await Log.create({
+  level: 'info',
+  message: 'User updated interests based on survey',
+  studentId: userId,
+  studentName: user.email, // Log the user's email as studentName
+  });
 
         return res.status(200).json({
             interests: analysis.specificInterests,
