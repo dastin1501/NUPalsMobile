@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const User = require('../models/User'); // Adjust the path if needed
 const Notification = require('../models/Notification'); // Import the Notification model
+const Message = require('../models/Message');
 
 // GET all users with student role
 router.get('/', async (req, res) => {
@@ -44,10 +45,18 @@ router.get('/mutual-followers/:userId', async (req, res) => {
     for (const follower of user.followers) {
       const followedUser = await User.findById(follower._id).populate('followers');
       if (followedUser.followers.some(f => f.equals(userId))) {
+        // Fetch the last message between the user and the mutual follower
+        const lastMessage = await Message.findOne({
+          $or: [
+            { senderId: userId, receiverId: follower._id.toString() },
+            { senderId: follower._id.toString(), receiverId: userId }
+          ]
+        }).sort({ createdAt: -1 }); // Sort to get the latest message
+
         mutualFollowers.push({
           userId: follower._id,
           username: follower.username, // Assuming there's a username field in your User model
-          lastMessage: 'Last message placeholder', // Optional: Add logic to fetch the last message if needed
+          lastMessage: lastMessage ? lastMessage.content : 'No messages exchanged', // Get the content or a placeholder
         });
       }
     }
@@ -58,6 +67,7 @@ router.get('/mutual-followers/:userId', async (req, res) => {
     res.status(500).json({ message: 'Internal server error' });
   }
 });
+
 
 // POST update user interests
 router.post('/update-interests/:userId', async (req, res) => {

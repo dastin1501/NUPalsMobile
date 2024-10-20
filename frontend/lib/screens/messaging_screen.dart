@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:intl/intl.dart'; // Import intl package for date formatting
 
 class MessagingScreen extends StatefulWidget {
   final String userId;
@@ -23,32 +24,29 @@ class _MessagingScreenState extends State<MessagingScreen> {
   }
 
   Future<void> _fetchMessages() async {
-  // Fetch messages between the users
-  try {
-    final response = await http.get(
-      Uri.parse('http://localhost:5000/api/messages/${widget.userId}/${widget.otherUserId}'),
-    );
+    try {
+      final response = await http.get(
+        Uri.parse('http://localhost:5000/api/messages/${widget.userId}/${widget.otherUserId}'),
+      );
 
-    if (response.statusCode == 200) {
-      final List<dynamic> messages = jsonDecode(response.body);
-      setState(() {
-        _messages = messages.cast<Map<String, dynamic>>();
-      });
-    } else {
-      throw Exception('Failed to load messages');
+      if (response.statusCode == 200) {
+        final List<dynamic> messages = jsonDecode(response.body);
+        setState(() {
+          _messages = messages.cast<Map<String, dynamic>>();
+        });
+      } else {
+        throw Exception('Failed to load messages');
+      }
+    } catch (error) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to load messages: ${error.toString()}')),
+      );
     }
-  } catch (error) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Failed to load messages: ${error.toString()}')),
-    );
   }
-}
-
 
   Future<void> _sendMessage() async {
     if (_messageController.text.isEmpty) return;
 
-    // Send a new message
     try {
       final response = await http.post(
         Uri.parse('http://localhost:5000/api/messages'),
@@ -57,8 +55,6 @@ class _MessagingScreenState extends State<MessagingScreen> {
           'senderId': widget.userId,
           'receiverId': widget.otherUserId,
           'content': _messageController.text,
-          // Add timestamp if needed
-          'timestamp': DateTime.now().toIso8601String(),
         }),
       );
 
@@ -73,6 +69,11 @@ class _MessagingScreenState extends State<MessagingScreen> {
         SnackBar(content: Text('Failed to send message: ${error.toString()}')),
       );
     }
+  }
+
+  String _formatTimestamp(String timestamp) {
+    DateTime dateTime = DateTime.parse(timestamp).toLocal(); // Convert to local time
+    return DateFormat('yyyy-MM-dd – hh:mm a').format(dateTime); // Format the date and time as needed
   }
 
   @override
@@ -93,9 +94,8 @@ class _MessagingScreenState extends State<MessagingScreen> {
                   return ListTile(
                     title: Text(message['content']),
                     subtitle: Text(
-                      '${message['senderId'] == widget.userId ? 'You' : 'Them'} • ${message['timestamp']}', // Add timestamp
+                      '${message['senderId'] == widget.userId ? 'You' : 'Them'} • ${_formatTimestamp(message['createdAt'])}', // Add timestamp formatting
                     ),
-                    // Optional: Customize the appearance
                     tileColor: message['senderId'] == widget.userId ? Colors.lightBlueAccent : Colors.grey[200],
                     contentPadding: EdgeInsets.all(10),
                   );

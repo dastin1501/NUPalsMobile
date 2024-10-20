@@ -4,23 +4,17 @@ const mongoose = require('mongoose');
 const router = express.Router();
 const Notification = require('../models/Notification'); // Ensure correct path to your Notification model
 
-// Get notifications for a specific user
-router.get('/:userId', async (req, res) => {
+// GET notifications for a user
+router.get('/:userId/notifications', async (req, res) => {
   try {
-    const userId = req.params.userId;
-
-    // Validate if userId is a valid MongoDB ObjectId
-    if (!mongoose.Types.ObjectId.isValid(userId)) {
-      return res.status(400).json({ error: 'Invalid User ID' });
-    }
-
-    // Fetch notifications for the user
-    const notifications = await Notification.find({ userId });
+    const notifications = await Notification.find({ receiverId: req.params.userId })
+      .sort({ timestamp: -1 }) // Sort by latest notifications
+      .populate('senderId', 'firstName lastName'); // Populate sender info if needed
 
     res.json(notifications);
   } catch (error) {
-    console.error('Error fetching notifications:', error); // Log the error to the console
-    res.status(500).json({ error: 'Server error' });
+    console.error('Error fetching notifications:', error);
+    res.status(500).json({ message: 'Server Error' });
   }
 });
 

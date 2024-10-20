@@ -1,5 +1,6 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:frontend/services/notification_service.dart';
+import 'package:http/http.dart' as http;
 import 'package:frontend/models/user_notification.dart';
 
 class NotificationsScreen extends StatefulWidget {
@@ -13,12 +14,23 @@ class NotificationsScreen extends StatefulWidget {
 
 class _NotificationsScreenState extends State<NotificationsScreen> {
   late Future<List<UserNotification>> _notificationsFuture;
-  final NotificationService notificationService = NotificationService();
 
   @override
   void initState() {
     super.initState();
-    _notificationsFuture = notificationService.fetchNotifications(widget.userId);
+    _notificationsFuture = _fetchNotifications(widget.userId);
+  }
+
+  // Function to fetch notifications from backend
+  Future<List<UserNotification>> _fetchNotifications(String userId) async {
+    final response = await http.get(Uri.parse('http://localhost:5000/api/notifications/$userId/notifications'));
+
+    if (response.statusCode == 200) {
+      final List<dynamic> data = jsonDecode(response.body);
+      return data.map((json) => UserNotification.fromJson(json)).toList();
+    } else {
+      throw Exception('Failed to load notifications');
+    }
   }
 
   @override
@@ -44,9 +56,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
               itemBuilder: (context, index) {
                 final notification = notifications[index];
                 return ListTile(
-                  title: Text('Notification'), // Static text as title (you can customize it)
-                  subtitle: Text(notification.message), // Use the correct field
-                  trailing: Text(notification.timestamp), // Add timestamp if desired
+                  title: Text(notification.message), // Notification message
+                  subtitle: Text('Received on ${notification.timestamp}'), // Timestamp
+                  trailing: Icon(Icons.notifications), // You can customize the icon
                 );
               },
             );

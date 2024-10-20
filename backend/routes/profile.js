@@ -6,6 +6,8 @@ const path = require('path');
 const fs = require('fs');
 const bcrypt = require('bcryptjs');
 const User = require('../models/User');
+const Notification = require('../models/Notification'); 
+
 
 // Ensure the uploads directory exists
 const uploadDir = 'uploads/';
@@ -122,28 +124,45 @@ router.post('/:userId/update', upload.single('profileImage'), async (req, res) =
 
 // Follow a user
 router.post('/:userId/follow', async (req, res) => {
-  const { followId } = req.body;
+  const { followId } = req.body; // ID of the user being followed
+
   try {
+    // Find the current user (the follower) and the user to follow
     const user = await User.findById(req.params.userId);
     const followUser = await User.findById(followId);
 
+    // Check if both users exist
     if (!user || !followUser) {
       return res.status(404).json({ msg: 'User not found' });
     }
 
+    // Check if the current user is already following the user
     if (!user.following.includes(followId)) {
+      // Add follow relation
       user.following.push(followId);
       followUser.followers.push(req.params.userId);
 
       await user.save();
       await followUser.save();
 
-      res.json({ msg: 'User followed' });
+      // Create a follow notification for the followed user
+      const notificationMessage = `${user.firstName} ${user.lastName} started following you.`;
+
+      const notification = new Notification({
+        type: 'follow',
+        senderId: req.params.userId,  // The user who is following
+        receiverId: followId,         // The user being followed
+        message: notificationMessage
+      });
+
+      await notification.save();
+
+      res.json({ msg: 'User followed and notification sent' });
     } else {
       res.status(400).json({ msg: 'Already following' });
     }
   } catch (err) {
-    console.error(err);
+    console.error('Server Error:', err);
     res.status(500).send('Server Error');
   }
 });
@@ -174,6 +193,18 @@ router.post('/:userId/follow', async (req, res) => {
 
     await follower.save();
     await followedUser.save();
+
+    // Create a follow notification for the followed user
+    const notificationMessage = `${follower.firstName} ${follower.lastName} started following you.`;
+
+    const notification = new Notification({
+      type: 'follow',
+      senderId: userId,      // The follower
+      receiverId: followId,  // The user being followed
+      message: notificationMessage
+    });
+
+    await notification.save();
 
     res.status(200).json({ message: 'User followed successfully' });
   } catch (error) {

@@ -1,19 +1,32 @@
-// models/notification.js
 const mongoose = require('mongoose');
 
 const notificationSchema = new mongoose.Schema({
-  userId: {
-    type: mongoose.Schema.Types.ObjectId, // ObjectId type for user references
-    ref: 'User', // Optional, only if you're using user references
+  type: {
+    type: String,
+    enum: ['follow'],  // You can expand this for other notification types in the future
+    required: true,
+  },
+  senderId: {
+    type: mongoose.Schema.Types.ObjectId,  // The user who performed the action (e.g., the follower)
+    ref: 'User',
+    required: true,
+  },
+  receiverId: {
+    type: mongoose.Schema.Types.ObjectId,  // The user who receives the notification (e.g., the one being followed)
+    ref: 'User',
     required: true,
   },
   message: {
     type: String,
     required: true,
   },
+  read: {
+    type: Boolean,
+    default: false,  // Track if the notification has been read
+  },
   timestamp: {
     type: Date,
-    default: Date.now,
+    default: Date.now,  
   },
 });
 
