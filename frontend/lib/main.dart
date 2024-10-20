@@ -59,7 +59,7 @@ class MyApp extends StatelessWidget {
             '/survey': (context) => SurveyScreen(email: '', userId: ''),
             '/messages': (context) => MessagingScreen(userId: '', otherUserId: ''),
             '/inbox': (context) => InboxScreen(userId: userId!), // Add InboxScreen route
-            '/notifications': (context) => NotificationScreen(userId: userId!), // Add NotificationsScreen route
+            '/notifications': (context) => NotificationsScreen(userId: userId!), // Add NotificationsScreen route
           },
         );
       },
@@ -100,35 +100,12 @@ class _MainScreenState extends State<MainScreen> {
     });
   }
 
- // Your logout function
-Future<void> logout() async {
-  final userId = await SharedPreferencesService.getUserId(); // Get the current user ID
- 
-  // Make the logout request to the backend
-  final response = await http.post(
-    Uri.parse('http://localhost:5000/api/auth/logout'), // Replace with your backend API URL
-    headers: {'Content-Type': 'application/json'},
-    body: json.encode({
-      'userId': userId,
-    }),
-  );
- 
-  if (response.statusCode == 200) {
-    // Remove the user ID from SharedPreferences only after successful logout
+  Future<void> logout() async {
     await SharedPreferencesService.removeUserId();
- 
-    // Optionally log the user ID after removing it
     final userIdAfterLogout = await SharedPreferencesService.getUserId();
     print('User ID after logout: $userIdAfterLogout'); // Should print null
- 
-    // Redirect to the login screen
     Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
-  } else {
-    // Handle logout failure (optional)
-    print('Failed to log out: ${response.body}');
   }
-}
- 
 
   @override
   Widget build(BuildContext context) {
@@ -183,7 +160,7 @@ Future<void> logout() async {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => NotificationScreen(userId: _userId), // Navigate to Notifications Screen
+                    builder: (context) => NotificationsScreen(userId: _userId), // Navigate to Notifications Screen
                   ),
                 );
               },

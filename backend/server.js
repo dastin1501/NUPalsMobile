@@ -8,7 +8,7 @@ const profileRoutes = require('./routes/profile');
 const postRoutes = require('./routes/post');
 const userRoutes = require('./routes/users');
 const messageRoutes = require('./routes/message');
-const notificationRoutes = require('./routes/notifications'); // Add this line for messages
+const notificationRoutes = require('./routes/notifications'); // Add this line for notifications
 
 // Load environment variables
 dotenv.config();
@@ -24,14 +24,14 @@ app.use(cors({
 // Middleware to parse JSON requests
 app.use(express.json());
 
-// Use the authentication, survey, profile, post, and user routes
+// Use the authentication, survey, profile, post, user, and notification routes
 app.use('/api/auth', authRoutes);
 app.use('/api/survey', surveyRoutes);
 app.use('/api/profile', profileRoutes);
 app.use('/api/posts', postRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/messages', messageRoutes);
-app.use('/api/notifications', notificationRoutes); // Add this line for message routes
+app.use('/api/notifications', notificationRoutes); // This line is correct
 
 // Connect to MongoDB
 mongoose.connect(process.env.MONGO_URI, {
