@@ -16,7 +16,6 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   late Future<Map<String, dynamic>> _userProfile;
-  bool _isFollowing = false;
   bool _isOwnProfile = false;
 
   @override
@@ -34,9 +33,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
         print(userProfile); // Debug print to check the response
 
         setState(() {
-          _isFollowing = userProfile['followers'] != null &&
-              userProfile['followers'].any((follower) => follower['_id'] == widget.userId);
-
           // Check if this profile belongs to the current user
           _isOwnProfile = userProfile['_id'] == widget.userId;
         });
@@ -50,205 +46,129 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
-  Future<void> _followUser(String followId) async {
-    try {
-      final response = await http.post(
-        Uri.parse('${ApiConstants.baseUrl}/api/profile/$followId/follow'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'followId': followId}),
-      );
-
-      if (response.statusCode == 200) {
-        setState(() {
-          _isFollowing = true;
-        });
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Followed successfully!')));
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Already following!')));
-      }
-    } catch (error) {
-      print('Error following user: $error');
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to follow user!')));
-    }
-  }
-
-  Future<void> _unfollowUser(String followId) async {
-    try {
-      final response = await http.post(
-        Uri.parse('${ApiConstants.baseUrl}/api/profile/$followId/unfollow'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'followId': followId}),
-      );
-
-      if (response.statusCode == 200) {
-        setState(() {
-          _isFollowing = false;
-        });
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Unfollowed successfully!')));
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Not following this user!')));
-      }
-    } catch (error) {
-      print('Error unfollowing user: $error');
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to unfollow user!')));
-    }
-  }
-
-@override
-Widget build(BuildContext context) {
-  return Scaffold(
-    backgroundColor: const Color.fromARGB(255, 246, 244, 244),
-    appBar: AppBar(
-      title: Text(
-        'Profile',
-        style: TextStyle(color: const Color.fromARGB(255, 255, 255, 255), fontSize: 24),
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color.fromARGB(255, 246, 244, 244),
+      appBar: AppBar(
+        title: Text(
+          'Profile',
+          style: TextStyle(color: const Color.fromARGB(255, 255, 255, 255), fontSize: 24),
+        ),
+        backgroundColor: nuBlue,
       ),
-      backgroundColor: nuBlue,
-    ),
-    body: FutureBuilder<Map<String, dynamic>>(
-      future: _userProfile,
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return Center(child: CircularProgressIndicator());
-        } else if (snapshot.hasError) {
-          return Center(child: Text('Error: ${snapshot.error}'));
-        } else {
-          final user = snapshot.data!;
-          return SingleChildScrollView( // Add SingleChildScrollView here
-            child: Column(
-              children: [
-                _TopPortion(profilePicture: user['profilePicture']), // Directly use _TopPortion here
-                // Use a fixed height for the user information section below
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Column(
-                    children: [
-                      Text(
-                        '${user['firstName']} ${user['lastName']}',
-                        style: Theme.of(context)
-                            .textTheme
-                            .titleLarge
-                            ?.copyWith(fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 16),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
+      body: FutureBuilder<Map<String, dynamic>>(
+        future: _userProfile,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(child: CircularProgressIndicator());
+          } else if (snapshot.hasError) {
+            return Center(child: Text('Error: ${snapshot.error}'));
+          } else {
+            final user = snapshot.data!;
+            return SingleChildScrollView(
+              child: Column(
+                children: [
+                  _TopPortion(profilePicture: user['profilePicture']),
+                  Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center, // Center items vertically
+                      crossAxisAlignment: CrossAxisAlignment.center, // Center items horizontally
+                      children: [
+                        // Full Name
+                        Text(
+                          '${user['firstName']} ${user['lastName']}',
+                          style: Theme.of(context)
+                              .textTheme
+                              .titleLarge
+                              ?.copyWith(fontWeight: FontWeight.bold, fontSize: 24),
+                          textAlign: TextAlign.center, // Center align the text
+                        ),
+                        const SizedBox(height: 8),
+                        // Bio
+                        Text(
+                          '${user['bio'] ?? "No bio available"}',
+                          style: TextStyle(color: Colors.black, fontSize: 18),
+                          textAlign: TextAlign.center, // Center align the text
+                        ),
+                        const SizedBox(height: 16),
+
+                        // Show Edit button only if it's the user's own profile
+                        if (_isOwnProfile)
                           FloatingActionButton.extended(
                             onPressed: () {
-                              if (!_isOwnProfile) {
-                                _isFollowing
-                                    ? _unfollowUser(user['_id'])
-                                    : _followUser(user['_id']);
-                              }
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => EditProfileScreen(userId: user['_id']),
+                                ),
+                              );
                             },
-                            heroTag: 'follow',
+                            heroTag: 'edit',
                             elevation: 0,
-                            label: Text(_isFollowing ? 'Unfollow' : 'Follow'),
-                            icon: const Icon(Icons.person_add_alt_1),
-                          ),
-                          const SizedBox(width: 16.0),
-                          if (_isOwnProfile)
-                            FloatingActionButton.extended(
-                              onPressed: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => EditProfileScreen(userId: user['_id']),
-                                  ),
-                                );
-                              },
-                              heroTag: 'edit',
-                              elevation: 0,
-                              backgroundColor: Colors.red,
-                              label: const Text("Edit Profile"),
-                              icon: const Icon(Icons.edit),
+                            backgroundColor: nuBlue,
+                            label: const Text(
+                              "Edit Profile",
+                              style: TextStyle(color: Colors.white),
                             ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                      _ProfileInfoRow(
-                        followers: user['followers']?.length ?? 0,
-                        following: user['follows']?.length ?? 0,
-                        posts: user['posts']?.length ?? 0,
-                      ),
-                      const SizedBox(height: 16),
-                      // Additional user info
-                      Text('Username: ${user['username']}', style: TextStyle(color: nuYellow, fontSize: 20)),
-                      Text('Email: ${user['email']}', style: TextStyle(color: nuYellow, fontSize: 20)),
-                      Text('Age: ${user['age']}', style: TextStyle(color: nuYellow, fontSize: 20)),
-                      Text('College: ${user['college']}', style: TextStyle(color: nuYellow, fontSize: 20)),
-                      Text('Year Level: ${user['yearLevel']}', style: TextStyle(color: nuYellow, fontSize: 20)),
-                      SizedBox(height: 16),
-                      Text('Bio: ${user['bio'] ?? "No bio available"}', style: TextStyle(color: nuYellow, fontSize: 20)),
-                      SizedBox(height: 16),
-                      Text('Custom Interests: ${user['customInterests']?.join(", ") ?? "None"}', style: TextStyle(color: nuYellow, fontSize: 20)),
-                      SizedBox(height: 16),
-                      Text('Categorized Interests: ${user['categorizedInterests']?.join(", ") ?? "None"}', style: TextStyle(color: nuYellow, fontSize: 20)),
-                    ],
+                            icon: const Icon(Icons.edit),
+                          ),
+                        const SizedBox(height: 16),
+
+                        // User details in a professional layout
+                        _ProfileInfoRow(label: 'Username:', value: user['username']),
+                        _ProfileInfoRow(label: 'Email:', value: user['email']),
+                        _ProfileInfoRow(label: 'Age:', value: user['age']?.toString() ?? "N/A"),
+                        _ProfileInfoRow(label: 'College:', value: user['college']),
+                        _ProfileInfoRow(label: 'Year Level:', value: user['yearLevel']),
+                        _ProfileInfoRow(label: 'Custom Interests:', value: user['customInterests']?.join(", ") ?? "None"),
+                        _ProfileInfoRow(label: 'Categorized Interests:', value: user['categorizedInterests']?.join(", ") ?? "None"),
+                      ],
+                    ),
                   ),
-                ),
-              ],
-            ),
-          );
-        }
-      },
-    ),
-  );
-}
-
-
+                ],
+              ),
+            );
+          }
+        },
+      ),
+    );
+  }
 }
 
 class _ProfileInfoRow extends StatelessWidget {
-  final int followers;
-  final int following;
-  final int posts;
+  final String label;
+  final String? value; // Allow value to be nullable
 
   const _ProfileInfoRow({
     Key? key,
-    required this.followers,
-    required this.following,
-    required this.posts,
+    required this.label,
+    this.value, // Accept nullable value
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: 80,
-      constraints: const BoxConstraints(maxWidth: 400),
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          _singleItem(context, 'Posts', posts),
-          const VerticalDivider(),
-          _singleItem(context, 'Followers', followers),
-          const VerticalDivider(),
-          _singleItem(context, 'Following', following),
+          Text(
+            label,
+            style: TextStyle(color: Colors.black, fontSize: 15), // Black color for the label
+          ),
+          Expanded(
+            child: Text(
+              value ?? "N/A", // Show "N/A" if value is null
+              textAlign: TextAlign.end,
+              style: TextStyle(color: Colors.black, fontSize: 15), // Black color for the value
+            ),
+          ),
         ],
       ),
     );
   }
-
-  Widget _singleItem(BuildContext context, String title, int value) => Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Text(
-              value.toString(),
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 20,
-              ),
-            ),
-          ),
-          Text(
-            title,
-            style: Theme.of(context).textTheme.bodySmall, // Use bodySmall instead of caption
-          ),
-        ],
-      );
 }
 
 class _TopPortion extends StatelessWidget {
@@ -258,8 +178,8 @@ class _TopPortion extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container( // Ensure the Stack has a defined size
-      height: 200, // Set a fixed height
+    return Container(
+      height: 200,
       child: Stack(
         fit: StackFit.expand,
         children: [
@@ -275,10 +195,10 @@ class _TopPortion extends StatelessWidget {
           ),
           Center(
             child: CircleAvatar(
-              radius: 60, // Size of the profile image
+              radius: 60,
               backgroundImage: profilePicture != null && profilePicture!.isNotEmpty
-                  ? NetworkImage(profilePicture!) // Load the image from the URL
-                  : const AssetImage('assets/images/profile_pic.jpg') as ImageProvider, // Placeholder image
+                  ? NetworkImage(profilePicture!)
+                  : const AssetImage('assets/images/profile_pic.jpg') as ImageProvider,
             ),
           ),
         ],

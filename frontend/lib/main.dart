@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:frontend/screens/feedback_screen.dart';
 import 'package:frontend/screens/forgotpassword_screen.dart';
 import 'package:frontend/screens/profile_screen.dart';
+import 'package:frontend/screens/report_screen.dart';
 import 'package:frontend/screens/search_screen.dart';
 import 'package:frontend/screens/home_screen.dart';
 import 'package:frontend/screens/splash_screen.dart';
@@ -63,6 +65,8 @@ class MyApp extends StatelessWidget {
             '/inbox': (context) => InboxScreen(userId: userId!),
             '/groupinbox': (context) => GroupInboxScreen(userId: userId!),
             '/notifications': (context) => NotificationsScreen(userId: userId!),
+            '/feedback': (context) => FeedbackScreen(userId: userId!),
+            '/report': (context) => ReportScreen(userId: userId!),
           },
         );
       },
@@ -183,18 +187,6 @@ Widget build(BuildContext context) {
                 );
               },
             ),
-            ListTile(
-              leading: Icon(Icons.message),
-              title: Text('Messages'),
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => MessagingScreen(userId: _userId, otherUserId: '',),
-                  ),
-                );
-              },
-            ),
               ListTile(
         leading: Icon(Icons.group), // Use a group icon
         title: Text('Group Inbox'),
@@ -207,6 +199,18 @@ Widget build(BuildContext context) {
           );
         },
       ),
+      ListTile(
+              leading: Icon(Icons.feedback),
+              title: Text('Feedback'),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => FeedbackScreen(userId: _userId),
+                  ),
+                );
+              },
+            ),
             ListTile(
               leading: Icon(Icons.logout),
               title: Text('Logout'),
