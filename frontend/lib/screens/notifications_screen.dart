@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:frontend/models/user_notification.dart';
+import '../utils/api_constant.dart'; // Import the ApiConstants
 
 class NotificationsScreen extends StatefulWidget {
   final String userId;
@@ -23,7 +24,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
   // Function to fetch notifications from backend
   Future<List<UserNotification>> _fetchNotifications(String userId) async {
-    final response = await http.get(Uri.parse('http://localhost:5000/api/notifications/$userId/notifications'));
+    final response = await http.get(Uri.parse('${ApiConstants.baseUrl}/api/notifications/$userId/notifications'));
 
     if (response.statusCode == 200) {
       final List<dynamic> data = jsonDecode(response.body);

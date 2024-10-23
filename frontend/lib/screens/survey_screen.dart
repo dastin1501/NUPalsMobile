@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../utils/constants.dart';
 import '../utils/shared_preferences.dart';
+import '../utils/api_constant.dart'; // Import the ApiConstants
 
 class SurveyScreen extends StatefulWidget {
   final String email;
@@ -74,7 +75,7 @@ class _SurveyScreenState extends State<SurveyScreen> {
         .toList();
 
     final response = await http.post(
-      Uri.parse('http://localhost:5000/api/survey/analyze'),
+      Uri.parse('${ApiConstants.baseUrl}/api/survey/analyze'),
       headers: {'Content-Type': 'application/json'},
       body: json.encode({'surveyResponse': {'questions': responseText}, 'userId': _userId}),
     );

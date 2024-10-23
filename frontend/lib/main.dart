@@ -12,11 +12,13 @@ import 'package:frontend/screens/register_screen.dart';
 import 'package:frontend/screens/messaging_screen.dart'; // Adjust the path as necessary
 import 'package:frontend/screens/inbox_screen.dart'; // Import the Inbox Screen
 import 'package:frontend/screens/notifications_screen.dart'; // Import Notifications Screen
+import 'package:frontend/screens/group_inbox_screen.dart'; //
+import 'package:frontend/utils/constants.dart';
 import 'package:frontend/utils/shared_preferences.dart';
 import 'dart:async';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-
+  
 void main() async {
   WidgetsFlutterBinding.ensureInitialized(); // Ensure binding is initialized
   final userId = await SharedPreferencesService.getUserId(); // Load user ID
@@ -37,7 +39,7 @@ class MyApp extends StatelessWidget {
         return MaterialApp(
           title: 'Social Media App',
           theme: ThemeData(primarySwatch: Colors.blue),
-          initialRoute: userId != null ? '/main' : '/signup',
+          initialRoute: userId != null && userId!.isNotEmpty ? '/main' : '/login',
           routes: {
             '/signup': (context) => SignUpScreen(),
             '/login': (context) => LoginScreen(),
@@ -45,10 +47,10 @@ class MyApp extends StatelessWidget {
             '/forgotpassword': (context) => ForgotPasswordScreen(),
             '/main': (context) {
               final userId = ModalRoute.of(context)!.settings.arguments as String?;
-              if (userId == null) {
-                // If userId is null, redirect to login
+              if (userId == null || userId.isEmpty) {
+                // If userId is null or empty, redirect to login
                 WidgetsBinding.instance!.addPostFrameCallback((_) {
-                  Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
+                  Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
                 });
                 return Container(); // Return an empty container or a loading indicator
               }
@@ -58,14 +60,16 @@ class MyApp extends StatelessWidget {
             '/register': (context) => RegisterScreen(email: ''),
             '/survey': (context) => SurveyScreen(email: '', userId: ''),
             '/messages': (context) => MessagingScreen(userId: '', otherUserId: ''),
-            '/inbox': (context) => InboxScreen(userId: userId!), // Add InboxScreen route
-            '/notifications': (context) => NotificationsScreen(userId: userId!), // Add NotificationsScreen route
+            '/inbox': (context) => InboxScreen(userId: userId!),
+            '/groupinbox': (context) => GroupInboxScreen(userId: userId!),
+            '/notifications': (context) => NotificationsScreen(userId: userId!),
           },
         );
       },
     );
   }
 }
+
 
 class MainScreen extends StatefulWidget {
   final String userId;
@@ -91,6 +95,7 @@ class _MainScreenState extends State<MainScreen> {
       HomeScreen(userId: _userId),
       SearchScreen(userId: _userId),
       InboxScreen(userId: _userId), // Add InboxScreen as a child
+       GroupInboxScreen(userId: _userId), // Use the new GroupInboxScreen
     ]);
   }
 
@@ -107,23 +112,36 @@ class _MainScreenState extends State<MainScreen> {
     Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Main Screen'),
-        backgroundColor: Colors.blue,
-        leading: Builder(
-          builder: (BuildContext context) {
-            return IconButton(
-              icon: Icon(Icons.menu),
-              onPressed: () {
-                Scaffold.of(context).openDrawer();
-              },
-            );
-          },
-        ),
+@override
+Widget build(BuildContext context) {
+  return Scaffold(
+    appBar: AppBar(
+      backgroundColor: nuBlue,
+      leading: Builder(
+        builder: (BuildContext context) {
+          return IconButton(
+            icon: Icon(Icons.menu),
+            onPressed: () {
+              Scaffold.of(context).openDrawer();
+            },
+          );
+        },
       ),
+      title: Row(
+        children: [
+          Image.asset(
+            'assets/logo.png', // Replace with the path to your logo
+            height: 40, // Adjust the height as needed
+          ),
+          SizedBox(width: 10), // Add some space between the logo and the title
+        Text(
+            'NUPals',
+            style: TextStyle(color: Colors.white), // Set text color to white
+          ),
+        ],
+      ),
+    ),
+
       drawer: Drawer(
         child: ListView(
           padding: EdgeInsets.zero,
@@ -177,6 +195,18 @@ class _MainScreenState extends State<MainScreen> {
                 );
               },
             ),
+              ListTile(
+        leading: Icon(Icons.group), // Use a group icon
+        title: Text('Group Inbox'),
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => GroupInboxScreen(userId: _userId),
+            ),
+          );
+        },
+      ),
             ListTile(
               leading: Icon(Icons.logout),
               title: Text('Logout'),
@@ -187,25 +217,31 @@ class _MainScreenState extends State<MainScreen> {
           ],
         ),
       ),
-      body: _children[_currentIndex],
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: _currentIndex,
-        onTap: onTabTapped,
-        items: [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Home',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.search),
-            label: 'Search',
-          ),
-          BottomNavigationBarItem( // Add the Inbox tab
-            icon: Icon(Icons.inbox),
-            label: 'Inbox',
-          ),
-        ],
-      ),
+     body: _children[_currentIndex],
+bottomNavigationBar: BottomNavigationBar(
+  currentIndex: _currentIndex,
+  onTap: onTabTapped,
+  backgroundColor: nuBlue, // Set the background color to blue
+  selectedItemColor: Colors.yellow, // Set the color for the selected icon
+  unselectedItemColor: Colors.white, // Set the color for unselected icons
+  showSelectedLabels: false, // Hide the label of the selected tab
+  showUnselectedLabels: false, // Hide the labels of unselected tabs
+  items: [
+    BottomNavigationBarItem(
+      icon: Icon(Icons.home),
+      label: 'Home', // Label will be hidden
+    ),
+    BottomNavigationBarItem(
+      icon: Icon(Icons.search),
+      label: 'Search', // Label will be hidden
+    ),
+    BottomNavigationBarItem(
+      icon: Icon(Icons.inbox),
+      label: 'Inbox', // Label will be hidden
+    ),
+  ],
+),
+
     );
   }
 }

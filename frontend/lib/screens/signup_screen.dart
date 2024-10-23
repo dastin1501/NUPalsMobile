@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'register_screen.dart';
 import 'package:frontend/utils/constants.dart';
+import '../utils/api_constant.dart'; // Import the ApiConstants
 
 class SignUpScreen extends StatefulWidget {
   @override
@@ -26,7 +27,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
     try {
       final response = await http.post(
-        Uri.parse('http://localhost:5000/api/auth/send-verification'),
+        Uri.parse('${ApiConstants.baseUrl}/api/auth/send-verification'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'email': email}),
       );
@@ -56,7 +57,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
     try {
       final response = await http.post(
-        Uri.parse('http://localhost:5000/api/auth/verify-code'),
+        Uri.parse('${ApiConstants.baseUrl}/api/auth/verify-code'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'email': email, 'code': code}),
       );

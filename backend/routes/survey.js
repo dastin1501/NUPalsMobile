@@ -136,7 +136,10 @@ router.post('/analyze', async (req, res) => {
 
      // Update the user's custom interests
      await User.findByIdAndUpdate(userId, {
-        $set: { customInterests: analysis.specificInterests } // Replace interests
+        $set: {
+            customInterests: analysis.specificInterests,
+            categorizedInterests: analysis.topCategories
+        } // Replace interests
     });
 
      // Fetch the user's email based on userId

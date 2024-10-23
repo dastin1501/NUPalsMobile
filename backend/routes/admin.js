@@ -1,6 +1,6 @@
 // routes/admin.js
 const express = require('express');
-const Post = require('../models/Post'); // Assuming you have a Post model
+const Post = require('../models/post'); // Assuming you have a Post model
 const Notification = require('../models/Notification'); // Import the Notification model
 const router = express.Router();
 

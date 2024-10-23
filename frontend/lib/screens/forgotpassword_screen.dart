@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:frontend/utils/constants.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import '../utils/api_constant.dart'; // Import the ApiConstants
 
 class ForgotPasswordScreen extends StatefulWidget {
   @override
@@ -17,7 +18,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   Future<void> _requestVerificationCode() async {
     try {
       final response = await http.post(
-        Uri.parse('http://localhost:5000/api/auth/forgot-password'),
+        Uri.parse('${ApiConstants.baseUrl}/auth/forgot-password'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'email': _emailController.text}),
       );
@@ -45,7 +46,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   Future<void> _resetPassword() async {
     try {
       final response = await http.post(
-        Uri.parse('http://localhost:5000/api/auth/reset-password'),
+        Uri.parse('${ApiConstants.baseUrl}/auth/reset-password'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'email': _emailController.text,

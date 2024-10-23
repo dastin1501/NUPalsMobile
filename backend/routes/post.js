@@ -2,15 +2,19 @@ const express = require('express');
 const router = express.Router();
 const Post = require('../models/post');
 
-// Route to get all posts
+// Route to get all posts, sorted by newest first
 router.get('/', async (req, res) => {
   try {
-    const posts = await Post.find().populate('userId', 'email'); // Populate userId with email
+    const posts = await Post.find()
+      .populate('userId', 'email') // Populate userId with email
+      .sort({ createdAt: -1 }); // Sort by createdAt in descending order (newest first)
+      
     res.status(200).json(posts);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 });
+
 
 // Route to get a single post with its details
 router.get('/:id', async (req, res) => {

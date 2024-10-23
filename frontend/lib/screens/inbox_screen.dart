@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'messaging_screen.dart'; // Import your MessagingScreen
+import '../utils/api_constant.dart'; // Import the ApiConstants
 
 class InboxScreen extends StatefulWidget {
   final String userId;
@@ -24,7 +25,7 @@ class _InboxScreenState extends State<InboxScreen> {
   Future<void> _fetchMutualFollowers() async {
     try {
       final response = await http.get(
-        Uri.parse('http://localhost:5000/api/users/mutual-followers/${widget.userId}'),
+        Uri.parse('${ApiConstants.baseUrl}/api/users/mutual-followers/${widget.userId}'),
       );
 
       if (response.statusCode == 200) {

@@ -18,6 +18,60 @@ const transporter = nodemailer.createTransport({
   },
 });
  
+
+// Send email verification code
+router.post('/send-verification', async (req, res) => {
+  const { email } = req.body;
+
+  // Ensure email domain is correct
+  if (!email.endsWith('@students.national-u.edu.ph')) {
+    return res.status(400).json({ message: 'Invalid email domain' });
+  }
+
+  // Check if user exists
+  const existingUser = await User.findOne({ email });
+  if (existingUser) {
+    return res.status(400).json({ message: 'Email already exist!' });
+  }
+
+  // Generate verification code
+  const code = crypto.randomBytes(3).toString('hex');
+  verificationCodes[email] = code;
+
+  // Send email with the code
+  const mailOptions = {
+    from: 'no-reply@yourapp.com',
+    to: email,
+    subject: 'Verification Code',
+    text: `Your verification code is: ${code}`,
+  };
+
+  transporter.sendMail(mailOptions, (error) => {
+    if (error) {
+      return res.status(500).json({ message: 'Failed to send email' });
+    }
+    res.status(200).json({ message: 'Verification code sent to email' });
+  });
+});
+
+// Verify the provided verification code
+router.post('/verify-code', async (req, res) => {
+  const { email, code } = req.body;
+
+  // Validate verification code
+  if (verificationCodes[email] !== code) {
+    return res.status(400).json({ message: 'Invalid verification code' });
+  }
+
+  // If valid, clear the code from storage
+  delete verificationCodes[email];
+
+  // Respond with success
+  res.status(200).json({ message: 'Verification code is valid' });
+});
+
+
+
 // Send email verification code for forgot password
 router.post('/forgot-password', async (req, res) => {
   const { email } = req.body;

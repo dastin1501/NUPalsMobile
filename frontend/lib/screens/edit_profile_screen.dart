@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:frontend/utils/constants.dart'; // Ensure this file has your theme colors
 import 'package:frontend/screens/survey_screen.dart'; // Import your survey screen
+import '../utils/api_constant.dart'; // Import the ApiConstants
 
 class EditProfileScreen extends StatefulWidget {
   final String userId;
@@ -28,7 +29,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
   Future<void> _fetchUserProfile() async {
     try {
-      final response = await http.get(Uri.parse('http://localhost:5000/api/profile/${widget.userId}'));
+      final response = await http.get(Uri.parse('${ApiConstants.baseUrl}/api/profile/${widget.userId}'));
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
