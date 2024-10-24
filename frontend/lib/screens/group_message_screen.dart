@@ -49,12 +49,16 @@ class _GroupMessageScreenState extends State<GroupMessageScreen> {
       _socket.emit('joinGroup', widget.groupChatId); // Join the group chat
     });
 
-    _socket.on('newMessage', (data) {
-      setState(() {
-        _messages.add(data); // Add new message to the list
-        _scrollToBottom(); // Scroll to bottom when a new message is received
-      });
-    });
+_socket.on('newMessage', (data) {
+  setState(() {
+    // Check if the message is already present
+    if (!_messages.any((msg) => msg['_id'] == data['_id'])) {
+      _messages.add(data); // Add new message to the list only if it's not already there
+      _scrollToBottom(); // Scroll to bottom when a new message is received
+    }
+  });
+});
+
 
     _socket.onDisconnect((_) => print('Disconnected from socket server'));
   }
@@ -92,16 +96,22 @@ void _sendMessage() async {
       'senderId': widget.userId,
       'content': _messageController.text,
       'createdAt': DateTime.now().toIso8601String(),
-      'firstName': widget.firstName, // Add first name to the message
-      'lastName': widget.lastName,   // Add last name to the message
+      'firstName': widget.firstName,
+      'lastName': widget.lastName,
+      '_id': DateTime.now().millisecondsSinceEpoch.toString(), // Generate a unique ID
     };
 
-    _socket.emit('sendMessage', message); // Emit the message via socket
-    _messageController.clear(); // Clear input after sending
-    setState(() {
-      _messages.add(message); // Add message to the local list immediately
-    });
-    _scrollToBottom(); // Jump to bottom after sending a message
+    // Emit the message via socket
+    _socket.emit('sendMessage', message);
+
+    // Clear input after sending
+    _messageController.clear(); 
+
+   // Instead of adding immediately, rely on the server response via socket
+    // setState(() {
+    //   _messages.add(message); // Remove this line to prevent immediate local addition
+    // });
+    // _scrollToBottom(); // Scroll to the bottom after sending
   }
 }
 
