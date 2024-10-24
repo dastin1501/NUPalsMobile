@@ -165,39 +165,46 @@ router.post('/register', async (req, res) => {
 // Login route
 router.post('/login', async (req, res) => {
   const { email, password } = req.body;
- 
+
   // Validate email domain
   if (!email.endsWith('@test.com')) {
     return res.status(400).json({ message: 'Invalid email domain' });
   }
- 
+
   try {
+    // Log incoming request
+    console.log(`Login attempt for email: ${email}`);
+
     const user = await User.findOne({ email });
     if (!user) {
       return res.status(400).json({ message: 'User not found', userId: null });
     }
- 
+
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(400).json({ message: 'Invalid credentials', userId: null });
     }
- 
+
     await Log.create({
       level: 'info',
       message: 'User logged in',
       studentId: user._id,
       studentName: user.email,
     });
- 
+
     return res.status(200).json({
       userId: user._id.toString(),
       message: 'Login successful',
     });
   } catch (error) {
     console.error('Error during login:', error);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({
+      message: 'Server error. Please try again later.',
+      error: error.message, // Consider removing this in production for security
+    });
   }
 });
+
  
 //logout
 router.post('/logout', async (req, res) => {

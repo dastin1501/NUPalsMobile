@@ -3,7 +3,7 @@ const router = express.Router();
 const Feedback = require('../models/Feedback'); // Assuming you have a Feedback model
 
 // POST feedback
-router.post('/feedback', async (req, res) => {
+router.post('/', async (req, res) => {
   const { userId, message, timestamp } = req.body;
 
   const feedback = new Feedback({ userId, message, timestamp });

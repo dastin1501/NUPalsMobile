@@ -26,7 +26,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
   void initState() {
     super.initState();
     _loadLoggedInUserId(); // Load the logged-in user ID
-    _userProfile = fetchUserProfile(widget.userId);
   }
 
   // Load the logged-in user ID from shared preferences
@@ -34,6 +33,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     setState(() {
       _loggedInUserId = prefs.getString('userId'); // Fetch the logged-in user's ID from shared preferences
+      // Refresh the user profile whenever logged-in user ID is loaded
+      _userProfile = fetchUserProfile(widget.userId);
     });
   }
 
@@ -83,6 +84,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
         SnackBar(content: Text('Failed to update follow status: ${response.body}')),
       );
     }
+  }
+
+  // Override didChangeDependencies to refresh profile when returning
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _userProfile = fetchUserProfile(widget.userId); // Refresh the user profile
   }
 
   @override
@@ -146,13 +154,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         // Edit button for own profile
                         if (_isOwnProfile) // Show button only if this is the user's own profile
                           FloatingActionButton.extended(
-                            onPressed: () {
-                              Navigator.push(
+                            onPressed: () async {
+                              // Navigate to edit profile screen
+                              await Navigator.push(
                                 context,
                                 MaterialPageRoute(
                                   builder: (context) => EditProfileScreen(userId: user['_id']),
                                 ),
                               );
+                              // Optionally, you can also refresh the user profile here if using didChangeDependencies is not sufficient
+                              _userProfile = fetchUserProfile(widget.userId); // Force refresh
+                              setState(() {}); // Update the UI
                             },
                             heroTag: 'edit',
                             elevation: 0,
@@ -192,7 +204,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         _ProfileInfoRow(label: 'Email:', value: user['email']),
                         _ProfileInfoRow(label: 'Age:', value: user['age']?.toString() ?? "N/A"),
                         _ProfileInfoRow(label: 'College:', value: user['college']),
-                        _ProfileInfoRow(label: 'Year Level:', value: user['yearLevel']),
                         _ProfileInfoRow(label: 'Custom Interests:', value: user['customInterests']?.join(", ") ?? "None"),
                         _ProfileInfoRow(label: 'Categorized Interests:', value: user['categorizedInterests']?.join(", ") ?? "None"),
                       ],
@@ -232,8 +243,8 @@ class _ProfileInfoRow extends StatelessWidget {
           Expanded(
             child: Text(
               value ?? "N/A", // Show "N/A" if value is null
-              textAlign: TextAlign.end,
-              style: TextStyle(color: Colors.black, fontSize: 15), // Black color for the value
+              style: TextStyle(color: Colors.grey[800], fontSize: 15), // Grey color for the value
+              textAlign: TextAlign.end, // Align text to the end
             ),
           ),
         ],

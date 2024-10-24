@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:frontend/screens/forgotpassword_screen.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'dart:io'; // For File usage
 import 'package:frontend/utils/constants.dart'; // Ensure this file has your theme colors
 import 'package:frontend/screens/survey_screen.dart'; // Import your survey screen
 import '../utils/api_constant.dart'; // Import the ApiConstants
+import 'package:image_picker/image_picker.dart'; // For image picking
+// Import your forgot password screen
 
 class EditProfileScreen extends StatefulWidget {
   final String userId;
@@ -17,9 +21,10 @@ class EditProfileScreen extends StatefulWidget {
 class _EditProfileScreenState extends State<EditProfileScreen> {
   final _formKey = GlobalKey<FormState>();
   final _usernameController = TextEditingController();
-  final _ageController = TextEditingController();
   final _collegeController = TextEditingController();
-  final _yearLevelController = TextEditingController();
+  final _bioController = TextEditingController(); // Bio controller
+  XFile? _selectedImage; // Variable for the selected image
+  final ImagePicker _picker = ImagePicker(); // ImagePicker instance
 
   @override
   void initState() {
@@ -35,9 +40,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         final data = json.decode(response.body);
         setState(() {
           _usernameController.text = data['username'] ?? '';
-          _ageController.text = data['age']?.toString() ?? '';
           _collegeController.text = data['college'] ?? '';
-          _yearLevelController.text = data['yearLevel'] ?? '';
+          _bioController.text = data['bio'] ?? ''; // Load bio
         });
       } else {
         throw Exception('Failed to load profile');
@@ -49,30 +53,61 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     }
   }
 
+  Future<void> _pickImage() async {
+    final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
+    if (image != null) {
+      print('Picked Image Path: ${image.path}');
+      setState(() {
+        _selectedImage = image;
+      });
+    } else {
+      print('No image selected.');
+    }
+  }
+
   Future<void> _updateProfile() async {
     final isValid = _formKey.currentState?.validate() ?? false;
     if (!isValid) return;
 
     try {
-      final response = await http.post(
-        Uri.parse('http://localhost:5000/api/profile/${widget.userId}'),
-        headers: {'Content-Type': 'application/json'},
-        body: json.encode({
-          'username': _usernameController.text,
-          'age': int.tryParse(_ageController.text),
-          'college': _collegeController.text,
-          'yearLevel': _yearLevelController.text,
-        }),
+      var request = http.MultipartRequest(
+        'POST',
+        Uri.parse('${ApiConstants.baseUrl}/api/profile/${widget.userId}/update'),
       );
 
+      // Add text fields to the request
+      request.fields['username'] = _usernameController.text;
+      request.fields['college'] = _collegeController.text;
+      request.fields['bio'] = _bioController.text; // Add bio
+
+      // Add the selected image if available
+      if (_selectedImage != null) {
+        var profileImage = await http.MultipartFile.fromPath(
+          'profileImage',
+          _selectedImage!.path,
+        );
+        request.files.add(profileImage);
+      }
+
+      // Send the request
+      var response = await request.send();
+
       if (response.statusCode == 200) {
-        Navigator.pop(context);
+        print('Profile updated: ${response.statusCode}');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Profile updated successfully', style: TextStyle(color: Colors.green))),
+        );
+        Navigator.pop(context); // Return to the previous screen after successful update
       } else {
-        throw Exception('Failed to update profile');
+        print('Failed to update profile: ${response.statusCode}');
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to update profile', style: TextStyle(color: Colors.red))),
+        );
       }
     } catch (error) {
+      print('Error updating profile: $error');
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to update profile', style: TextStyle(color: Colors.red))),
+        SnackBar(content: Text('Error updating profile', style: TextStyle(color: Colors.red))),
       );
     }
   }
@@ -94,21 +129,39 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // Image picker button
+                Center(
+                  child: ElevatedButton(
+                    onPressed: _pickImage,
+                    child: Text('Pick Profile Image'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: nuYellow,
+                      padding: EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                    ),
+                  ),
+                ),
+
+                // Display the selected image
+                if (_selectedImage != null)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 16.0),
+                    child: Image.file(
+                      File(_selectedImage!.path),
+                      height: 150,
+                    ),
+                  ),
+
                 buildTextField('Username', _usernameController, validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Please enter your username';
                   }
                   return null;
                 }),
-                buildTextField('Age', _ageController, keyboardType: TextInputType.number, validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter your age';
-                  }
-                  return null;
-                }),
                 buildTextField('College', _collegeController),
-                buildTextField('Year Level', _yearLevelController),
+                buildTextField('Bio', _bioController), // Bio field
+
                 SizedBox(height: 24),
+
                 Center(
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
@@ -120,6 +173,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   ),
                 ),
                 SizedBox(height: 24),
+                
+                // Button to change password
                 Center(
                   child: ElevatedButton(
                     style: ElevatedButton.styleFrom(
@@ -129,7 +184,31 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     onPressed: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => SurveyScreen(email: '', userId: '',)), // Navigate to your survey screen
+                        MaterialPageRoute(
+                          builder: (context) => ForgotPasswordScreen(), // Navigate to the forgot password screen
+                        ),
+                      );
+                    },
+                    child: Text('Change Password', style: TextStyle(color: nuBlue, fontWeight: FontWeight.bold)),
+                  ),
+                ),
+                SizedBox(height: 24),
+                
+                // Button to change interests
+                Center(
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: nuYellow,
+                      padding: EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                    ),
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => SurveyScreen(
+                            email: '', // Pass the actual email if necessary
+                            userId: widget.userId, // Pass userId to survey screen
+                          )),
                       );
                     },
                     child: Text('Change Interests', style: TextStyle(color: nuBlue, fontWeight: FontWeight.bold)),
@@ -143,7 +222,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     );
   }
 
-  Widget buildTextField(String label, TextEditingController controller, {TextInputType keyboardType = TextInputType.text, String? Function(String?)? validator}) {
+  Widget buildTextField(String label, TextEditingController controller,
+      {TextInputType keyboardType = TextInputType.text, String? Function(String?)? validator}) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16.0),
       child: TextFormField(
