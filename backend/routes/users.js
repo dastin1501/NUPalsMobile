@@ -39,11 +39,13 @@ router.get('/mutual-followers/:userId', async (req, res) => {
   const { userId } = req.params;
   try {
     const user = await User.findById(userId).populate('followers'); // Assuming 'followers' is an array of user IDs
-    const mutualFollowers = [];
+    const mutualFollowers = new Set(); // Use a Set to avoid duplicates
 
     // Check each follower to see if they follow back
     for (const follower of user.followers) {
       const followedUser = await User.findById(follower._id).populate('followers');
+
+      // Only add if they still follow each other
       if (followedUser.followers.some(f => f.equals(userId))) {
         // Fetch the last message between the user and the mutual follower
         const lastMessage = await Message.findOne({
@@ -53,15 +55,17 @@ router.get('/mutual-followers/:userId', async (req, res) => {
           ]
         }).sort({ createdAt: -1 }); // Sort to get the latest message
 
-        mutualFollowers.push({
+        // Add to the Set to avoid duplicates
+        mutualFollowers.add({
           userId: follower._id,
-          username: follower.username, // Assuming there's a username field in your User model
-          lastMessage: lastMessage ? lastMessage.content : 'No messages exchanged', // Get the content or a placeholder
+          username: follower.username,
+          lastMessage: lastMessage ? lastMessage.content : 'No messages exchanged',
         });
       }
     }
 
-    res.json(mutualFollowers);
+    // Convert the Set back to an array
+    res.json(Array.from(mutualFollowers));
   } catch (error) {
     console.error('Error fetching mutual followers:', error);
     res.status(500).json({ message: 'Internal server error' });
