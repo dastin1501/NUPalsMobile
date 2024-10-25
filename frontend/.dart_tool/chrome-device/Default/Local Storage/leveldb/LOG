@@ -1,3 +1,2 @@
-2024/10/24-16:26:16.718 33bc Reusing MANIFEST C:\Users\Dastin\AppData\Local\Temp\flutter_tools.9602663d\flutter_tools_chrome_device.d9757b6d\Default\Local Storage\leveldb/MANIFEST-000001
-2024/10/24-16:26:16.727 33bc Recovering log #3
-2024/10/24-16:26:16.733 33bc Reusing old log C:\Users\Dastin\AppData\Local\Temp\flutter_tools.9602663d\flutter_tools_chrome_device.d9757b6d\Default\Local Storage\leveldb/000003.log 
+2024/10/25-22:35:45.432 2df8 Creating DB C:\Users\Dastin\AppData\Local\Temp\flutter_tools.e746e8d\flutter_tools_chrome_device.c4c7ce5a\Default\Local Storage\leveldb since it was missing.
+2024/10/25-22:35:45.454 2df8 Reusing MANIFEST C:\Users\Dastin\AppData\Local\Temp\flutter_tools.e746e8d\flutter_tools_chrome_device.c4c7ce5a\Default\Local Storage\leveldb/MANIFEST-000001
