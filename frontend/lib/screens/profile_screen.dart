@@ -280,13 +280,25 @@ class _TopPortion extends StatelessWidget {
             left: MediaQuery.of(context).size.width / 2 - 50,
             child: CircleAvatar(
               radius: 50,
-              backgroundImage: profilePicture != null && profilePicture!.isNotEmpty
-                  ? NetworkImage(profilePicture!) // Fetch image from URL
-                  : const AssetImage('assets/images/profile_pic.jpg') as ImageProvider, // Default image
+              backgroundImage: _getProfileImage(),
             ),
           ),
         ],
       ),
     );
+  }
+
+  ImageProvider _getProfileImage() {
+    if (profilePicture != null && profilePicture!.isNotEmpty) {
+      try {
+        // Remove prefix and decode Base64
+        final base64String = profilePicture!.split(',').last; // Removes "data:image/jpeg;base64,"
+        final bytes = base64Decode(base64String); // Decode the Base64 string
+        return MemoryImage(bytes); // Use MemoryImage for Base64 data
+      } catch (e) {
+        print('Error decoding Base64 image: $e'); // Log the error for debugging
+      }
+    }
+    return const AssetImage('assets/images/profile_pic.jpg') as ImageProvider; // Default image
   }
 }
