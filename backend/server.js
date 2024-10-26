@@ -12,7 +12,9 @@
   const messageRoutes = require('./routes/message');
   const groupChatRoutes = require('./routes/groupchat');
   const notificationRoutes = require('./routes/notifications'); // Add this line for notifications
-  const { GroupChat, GroupChatMessage } = require('./models/groupChat'); // Import both models
+  const { GroupChat, GroupChatMessage } = require('./models/groupChat');
+  const feedbackRoutes = require('./routes/feedback');
+  const reportRoute = require('./routes/report');// Import both models
   const User = require('./models/User'); 
   
   // Load environment variables
@@ -26,8 +28,9 @@
     origin: '*', // Adjust as necessary
   }));
 
-  // Middleware to parse JSON requests
-  app.use(express.json());
+// Increase the limit to 10mb (adjust as necessary)
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
   // Use the authentication, survey, profile, post, user, and notification routes
   app.use('/api/auth', authRoutes);
@@ -37,7 +40,9 @@
   app.use('/api/users', userRoutes);
   app.use('/api/messages', messageRoutes);
   app.use('/api/group', groupChatRoutes);
-  app.use('/api/notifications', notificationRoutes); // This line is correct
+  app.use('/api/notifications', notificationRoutes);
+  app.use('/api/feedback', feedbackRoutes);
+  app.use('/api/report', reportRoute); // This line is correct
 
   // Connect to MongoDB
   mongoose.connect(process.env.MONGO_URI, {

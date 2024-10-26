@@ -18,7 +18,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   Future<void> _requestVerificationCode() async {
     try {
       final response = await http.post(
-        Uri.parse('${ApiConstants.baseUrl}/auth/forgot-password'),
+        Uri.parse('${ApiConstants.baseUrl}/api/auth/forgot-password'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'email': _emailController.text}),
       );
@@ -46,7 +46,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   Future<void> _resetPassword() async {
     try {
       final response = await http.post(
-        Uri.parse('${ApiConstants.baseUrl}/auth/reset-password'),
+        Uri.parse('${ApiConstants.baseUrl}/api/auth/reset-password'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'email': _emailController.text,

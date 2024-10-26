@@ -130,7 +130,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       return;
     }
 
-    var uri = Uri.parse('${ApiConstants.profileEndpoint}');
+    var uri = Uri.parse('${ApiConstants.baseUrl}/api/profile');
     var request = http.MultipartRequest('POST', uri);
 
     // Add profile image if selected

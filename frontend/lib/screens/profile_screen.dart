@@ -4,6 +4,8 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:frontend/utils/constants.dart';
 import '../utils/api_constant.dart'; // Import the ApiConstants
+import 'package:shared_preferences/shared_preferences.dart'; // Import shared_preferences for storing logged-in user ID
+import 'report_screen.dart'; // Import the report screen
 
 class ProfileScreen extends StatefulWidget {
   final String userId;
@@ -17,11 +19,23 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   late Future<Map<String, dynamic>> _userProfile;
   bool _isOwnProfile = false;
+  String? _loggedInUserId; // Add a variable to store the logged-in user's ID
+  bool _isFollowing = false; // Track if the logged-in user is following the profile
 
   @override
   void initState() {
     super.initState();
-    _userProfile = fetchUserProfile(widget.userId);
+    _loadLoggedInUserId(); // Load the logged-in user ID
+  }
+
+  // Load the logged-in user ID from shared preferences
+  Future<void> _loadLoggedInUserId() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _loggedInUserId = prefs.getString('userId'); // Fetch the logged-in user's ID from shared preferences
+      // Refresh the user profile whenever logged-in user ID is loaded
+      _userProfile = fetchUserProfile(widget.userId);
+    });
   }
 
   Future<Map<String, dynamic>> fetchUserProfile(String userId) async {
@@ -33,8 +47,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
         print(userProfile); // Debug print to check the response
 
         setState(() {
-          // Check if this profile belongs to the current user
-          _isOwnProfile = userProfile['_id'] == widget.userId;
+          // Check if this profile belongs to the logged-in user
+          _isOwnProfile = userProfile['_id'] == _loggedInUserId; // Compare profile ID with logged-in user ID
+          _isFollowing = userProfile['followers'].contains(_loggedInUserId); // Check if logged-in user is a follower
         });
 
         return userProfile;
@@ -44,6 +59,38 @@ class _ProfileScreenState extends State<ProfileScreen> {
     } catch (error) {
       throw Exception('Failed to load profile: $error');
     }
+  }
+
+  Future<void> _toggleFollow() async {
+    // Using the followUser function from your search screen
+    final url = '${ApiConstants.baseUrl}/api/profile/${widget.userId}/follow'; // Updated URL for following
+    final response = await http.post(
+      Uri.parse(url),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({'followId': _loggedInUserId}), // Send logged-in user ID
+    );
+
+    if (response.statusCode == 200) {
+      setState(() {
+        _isFollowing = !_isFollowing; // Toggle the following state
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(_isFollowing ? 'User followed' : 'User unfollowed')), // Update the message
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to update follow status: ${response.body}')),
+      );
+    }
+  }
+
+  // Override didChangeDependencies to refresh profile when returning
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _userProfile = fetchUserProfile(widget.userId); // Refresh the user profile
   }
 
   @override
@@ -94,16 +141,30 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ),
                         const SizedBox(height: 16),
 
+                        // Follow/Unfollow button
+                        if (!_isOwnProfile) // Show follow button only for other users
+                          ElevatedButton(
+                            onPressed: _toggleFollow, // Use the updated toggle follow function
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: _isFollowing ? Colors.red : nuBlue, // Change color based on follow status
+                            ),
+                            child: Text(_isFollowing ? "Unfollow" : "Follow"), // Change text based on follow status
+                          ),
+
                         // Edit button for own profile
-                        if (_isOwnProfile)
+                        if (_isOwnProfile) // Show button only if this is the user's own profile
                           FloatingActionButton.extended(
-                            onPressed: () {
-                              Navigator.push(
+                            onPressed: () async {
+                              // Navigate to edit profile screen
+                              await Navigator.push(
                                 context,
                                 MaterialPageRoute(
                                   builder: (context) => EditProfileScreen(userId: user['_id']),
                                 ),
                               );
+                              // Optionally, you can also refresh the user profile here if using didChangeDependencies is not sufficient
+                              _userProfile = fetchUserProfile(widget.userId); // Force refresh
+                              setState(() {}); // Update the UI
                             },
                             heroTag: 'edit',
                             elevation: 0,
@@ -114,6 +175,28 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             ),
                             icon: const Icon(Icons.edit),
                           ),
+                        
+                        // Report button for other profiles
+                        if (!_isOwnProfile) // Show report button for other users' profiles
+                          FloatingActionButton.extended(
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => ReportScreen(userId: user['_id']), // Navigate to report screen
+                                ),
+                              );
+                            },
+                            heroTag: 'report',
+                            elevation: 0,
+                            backgroundColor: Colors.redAccent,
+                            label: const Text(
+                              "Report User",
+                              style: TextStyle(color: Colors.white),
+                            ),
+                            icon: const Icon(Icons.report),
+                          ),
+
                         const SizedBox(height: 16),
 
                         // User details in a professional layout
@@ -121,7 +204,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         _ProfileInfoRow(label: 'Email:', value: user['email']),
                         _ProfileInfoRow(label: 'Age:', value: user['age']?.toString() ?? "N/A"),
                         _ProfileInfoRow(label: 'College:', value: user['college']),
-                        _ProfileInfoRow(label: 'Year Level:', value: user['yearLevel']),
                         _ProfileInfoRow(label: 'Custom Interests:', value: user['customInterests']?.join(", ") ?? "None"),
                         _ProfileInfoRow(label: 'Categorized Interests:', value: user['categorizedInterests']?.join(", ") ?? "None"),
                       ],
@@ -161,8 +243,8 @@ class _ProfileInfoRow extends StatelessWidget {
           Expanded(
             child: Text(
               value ?? "N/A", // Show "N/A" if value is null
-              textAlign: TextAlign.end,
-              style: TextStyle(color: Colors.black, fontSize: 15), // Black color for the value
+              style: TextStyle(color: Colors.grey[800], fontSize: 15), // Grey color for the value
+              textAlign: TextAlign.end, // Align text to the end
             ),
           ),
         ],
@@ -187,18 +269,20 @@ class _TopPortion extends StatelessWidget {
             margin: const EdgeInsets.only(bottom: 50),
             decoration: const BoxDecoration(
               gradient: LinearGradient(
-                begin: Alignment.bottomCenter,
-                end: Alignment.topCenter,
                 colors: [nuBlue, Colors.blueAccent],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
               ),
             ),
           ),
-          Center(
+          Positioned(
+            bottom: 0,
+            left: MediaQuery.of(context).size.width / 2 - 50,
             child: CircleAvatar(
-              radius: 60,
+              radius: 50,
               backgroundImage: profilePicture != null && profilePicture!.isNotEmpty
-                  ? NetworkImage(profilePicture!)
-                  : const AssetImage('assets/images/profile_pic.jpg') as ImageProvider,
+                  ? NetworkImage(profilePicture!) // Fetch image from URL
+                  : const AssetImage('assets/images/profile_pic.jpg') as ImageProvider, // Default image
             ),
           ),
         ],

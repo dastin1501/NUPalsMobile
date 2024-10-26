@@ -30,8 +30,20 @@ class _InboxScreenState extends State<InboxScreen> {
 
       if (response.statusCode == 200) {
         final List<dynamic> followers = jsonDecode(response.body);
+
+        // Use a Map to track unique followers by userId
+        final Map<String, Map<String, dynamic>> uniqueFollowers = {};
+        for (var follower in followers) {
+          // Ensure the dynamic is cast to Map<String, dynamic>
+          final Map<String, dynamic> followerMap = follower as Map<String, dynamic>;
+
+          // Add unique entries based on userId
+          uniqueFollowers[followerMap['userId']] = followerMap;
+        }
+
+        // Convert the unique Map back to a List<Map<String, dynamic>>
         setState(() {
-          _mutualFollowers = followers.cast<Map<String, dynamic>>();
+          _mutualFollowers = uniqueFollowers.values.toList().cast<Map<String, dynamic>>();
         });
       } else {
         throw Exception('Failed to load mutual followers');

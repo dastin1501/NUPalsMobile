@@ -33,24 +33,30 @@ router.get('/:id', async (req, res) => {
   }
 });
 
-// Route to like a post
+// Route to like or unlike a post
 router.post('/:id/like', async (req, res) => {
   try {
     const post = await Post.findById(req.params.id);
     if (!post) return res.status(404).json({ message: 'Post not found' });
 
-    // Add user to likes array if they haven't liked the post already
-    if (!post.likes.includes(req.body.userId)) {
-      post.likes.push(req.body.userId);
-    }
+    // Check if the user has already liked the post
+    const likedIndex = post.likes.indexOf(req.body.userId);
 
-    await post.save();
-    res.status(200).json({ message: 'Post liked' });
+    if (likedIndex === -1) {
+      // If the user hasn't liked the post, add them to the likes array
+      post.likes.push(req.body.userId);
+      await post.save();
+      res.status(200).json({ message: 'Post liked' });
+    } else {
+      // If the user has already liked the post, remove them from the likes array
+      post.likes.splice(likedIndex, 1);
+      await post.save();
+      res.status(200).json({ message: 'Post unliked' });
+    }
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 });
-
 // Route to add a comment to a post
 router.post('/:id/comment', async (req, res) => {
   try {

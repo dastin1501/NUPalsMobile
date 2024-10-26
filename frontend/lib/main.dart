@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:frontend/screens/feedback_screen.dart';
 import 'package:frontend/screens/forgotpassword_screen.dart';
 import 'package:frontend/screens/profile_screen.dart';
+import 'package:frontend/screens/report_screen.dart';
 import 'package:frontend/screens/search_screen.dart';
 import 'package:frontend/screens/home_screen.dart';
 import 'package:frontend/screens/splash_screen.dart';
@@ -18,7 +20,8 @@ import 'package:frontend/utils/shared_preferences.dart';
 import 'dart:async';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-  
+import '../utils/api_constant.dart'; // Import the ApiConstants
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized(); // Ensure binding is initialized
   final userId = await SharedPreferencesService.getUserId(); // Load user ID
@@ -63,6 +66,8 @@ class MyApp extends StatelessWidget {
             '/inbox': (context) => InboxScreen(userId: userId!),
             '/groupinbox': (context) => GroupInboxScreen(userId: userId!),
             '/notifications': (context) => NotificationsScreen(userId: userId!),
+            '/feedback': (context) => FeedbackScreen(userId: userId!),
+            '/report': (context) => ReportScreen(userId: userId!),
           },
         );
       },
@@ -105,12 +110,44 @@ class _MainScreenState extends State<MainScreen> {
     });
   }
 
-  Future<void> logout() async {
-    await SharedPreferencesService.removeUserId();
-    final userIdAfterLogout = await SharedPreferencesService.getUserId();
-    print('User ID after logout: $userIdAfterLogout'); // Should print null
+Future<void> logout() async {
+  final userId = await SharedPreferencesService.getUserId(); // Retrieve the user ID
+
+  if (userId == null) {
+    // User is already logged out
     Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
+    return;
   }
+
+  try {
+    final response = await http.post(
+      Uri.parse('${ApiConstants.baseUrl}/api/auth/logout'), // Replace with your actual logout URL
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({'userId': userId}), // Send userId in the body
+    );
+
+    if (response.statusCode == 200) {
+      // Handle successful logout
+      await SharedPreferencesService.removeUserId(); // Remove user ID from SharedPreferences
+      print('User ID after logout: ${await SharedPreferencesService.getUserId()}'); // Should print null
+
+      // Navigate to the login screen
+      Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
+    } else {
+      // Handle unsuccessful logout
+      final responseData = jsonDecode(response.body);
+      final errorMessage = responseData['message'] ?? 'Logout Failed';
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(errorMessage)),
+      );
+    }
+  } catch (error) {
+    print('Logout error: $error');
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Logout error occurred')),
+    );
+  }
+}
 
 @override
 Widget build(BuildContext context) {
@@ -183,18 +220,6 @@ Widget build(BuildContext context) {
                 );
               },
             ),
-            ListTile(
-              leading: Icon(Icons.message),
-              title: Text('Messages'),
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => MessagingScreen(userId: _userId, otherUserId: '',),
-                  ),
-                );
-              },
-            ),
               ListTile(
         leading: Icon(Icons.group), // Use a group icon
         title: Text('Group Inbox'),
@@ -207,6 +232,18 @@ Widget build(BuildContext context) {
           );
         },
       ),
+      ListTile(
+              leading: Icon(Icons.feedback),
+              title: Text('Feedback'),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => FeedbackScreen(userId: _userId),
+                  ),
+                );
+              },
+            ),
             ListTile(
               leading: Icon(Icons.logout),
               title: Text('Logout'),
@@ -249,7 +286,7 @@ bottomNavigationBar: BottomNavigationBar(
 // Function to register user
 Future<void> registerUser(BuildContext context, String email, String username, String password, String age, String college, String yearLevel, String bio) async {
   final response = await http.post(
-    Uri.parse('http://localhost:5000/register'), // Replace with your server URL
+    Uri.parse('${ApiConstants.baseUrl}/api/auth/register'), // Replace with your server URL
     headers: {'Content-Type': 'application/json'},
     body: json.encode({
       'email': email,

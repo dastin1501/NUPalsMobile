@@ -1,8 +1,11 @@
-import 'dart:convert';
+// frontend/notifications_screen.dart
+
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:frontend/models/user_notification.dart';
-import '../utils/api_constant.dart'; // Import the ApiConstants
+import 'dart:convert';
+import '../models/user_notification.dart';
+import '../utils/api_constant.dart';
+import 'profile_screen.dart'; // Import your existing ProfileScreen
 
 class NotificationsScreen extends StatefulWidget {
   final String userId;
@@ -22,7 +25,6 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     _notificationsFuture = _fetchNotifications(widget.userId);
   }
 
-  // Function to fetch notifications from backend
   Future<List<UserNotification>> _fetchNotifications(String userId) async {
     final response = await http.get(Uri.parse('${ApiConstants.baseUrl}/api/notifications/$userId/notifications'));
 
@@ -56,10 +58,21 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
               itemCount: notifications.length,
               itemBuilder: (context, index) {
                 final notification = notifications[index];
-                return ListTile(
-                  title: Text(notification.message), // Notification message
-                  subtitle: Text('Received on ${notification.timestamp}'), // Timestamp
-                  trailing: Icon(Icons.notifications), // You can customize the icon
+                return GestureDetector(
+                  onTap: () {
+                    // Navigate to existing ProfileScreen
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => ProfileScreen(userId: notification.senderId), // Use senderId
+                      ),
+                    );
+                  },
+                  child: ListTile(
+                    title: Text(notification.message),
+                    subtitle: Text('Received on ${notification.timestamp}'),
+                    trailing: Icon(Icons.notifications),
+                  ),
                 );
               },
             );
