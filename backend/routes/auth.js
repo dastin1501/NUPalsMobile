@@ -162,14 +162,10 @@ router.post('/register', async (req, res) => {
   }
 });
  
+
 // Login route
 router.post('/login', async (req, res) => {
   const { email, password } = req.body;
-
-  // Validate email domain
-  if (!email.endsWith('@test.com')) {
-    return res.status(400).json({ message: 'Invalid email domain' });
-  }
 
   try {
     const user = await User.findOne({ email });
@@ -192,12 +188,13 @@ router.post('/login', async (req, res) => {
     return res.status(200).json({
       userId: user._id.toString(),
       message: 'Login successful',
-    }); 
+    });
   } catch (error) {
     console.error('Error during login:', error);
     res.status(500).json({ message: 'Server error' });
   }
 });
+
 
  
 //logout

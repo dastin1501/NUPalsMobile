@@ -15,12 +15,15 @@ class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _passwordController = TextEditingController();
 
   Future<void> _login() async {
+    // Append the fixed domain to the email
+    final email = "${_emailController.text}@test.com";
+
     try {
       final response = await http.post(
         Uri.parse('${ApiConstants.baseUrl}/api/auth/login'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
-          'email': _emailController.text,
+          'email': email, // Use the modified email here
           'password': _passwordController.text,
         }),
       );
@@ -77,7 +80,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 SizedBox(
                   width: 400, // Ensuring fixed width for both Card and Container
                   child: Card(
-                      color: Colors.white, // Set the card color to white
+                    color: Colors.white, // Set the card color to white
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16),
                     ),
@@ -105,11 +108,12 @@ class _LoginScreenState extends State<LoginScreen> {
                           TextField(
                             controller: _emailController,
                             decoration: InputDecoration(
-                              labelText: 'Email',
+                              labelText: 'Enter University Email', // Update label text
                               prefixIcon: Icon(Icons.email, color: nuBlue),
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12),
                               ),
+                              suffixText: '@test.com', // Show the fixed domain
                             ),
                           ),
                           SizedBox(height: 16),
