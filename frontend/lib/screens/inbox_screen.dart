@@ -28,6 +28,9 @@ class _InboxScreenState extends State<InboxScreen> {
         Uri.parse('${ApiConstants.baseUrl}/api/users/mutual-followers/${widget.userId}'),
       );
 
+      print('Response status: ${response.statusCode}');
+      print('Response body: ${response.body}'); // Log the response body
+
       if (response.statusCode == 200) {
         final List<dynamic> followers = jsonDecode(response.body);
 
@@ -55,58 +58,71 @@ class _InboxScreenState extends State<InboxScreen> {
     }
   }
 
-  void _navigateToMessaging(String otherUserId) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => MessagingScreen(
-          userId: widget.userId,
-          otherUserId: otherUserId,
+  void _navigateToMessaging(String? otherUserId, String? otherUserName) {
+    print('Navigating to messaging with:');
+    print('UserId: $otherUserId');
+    print('UserName: $otherUserName');
+
+    if (otherUserId != null && otherUserName != null) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => MessagingScreen(
+            userId: widget.userId,
+            otherUserId: otherUserId,
+            otherUserName: otherUserName,
+          ),
         ),
-      ),
-    );
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('User information is missing.')),
+      );
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Inbox'),
-        backgroundColor: Colors.blueAccent,
+        title: Text('Your Connections'),
+        backgroundColor: const Color.fromARGB(255, 246, 244, 244),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: ListView.builder(
-          itemCount: _mutualFollowers.length,
-          itemBuilder: (context, index) {
-            final user = _mutualFollowers[index];
-            return Card(
-              elevation: 4,
-              margin: const EdgeInsets.symmetric(vertical: 8.0),
-              child: ListTile(
-                contentPadding: const EdgeInsets.all(16.0),
-                title: Text(
-                  user['username'],
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-                ),
-                subtitle: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(user['lastMessage'] ?? 'No messages yet'),
-                    SizedBox(height: 4),
-                    Text(
-                      user['timestamp'] != null
-                          ? DateTime.parse(user['timestamp']).toLocal().toString().split(' ')[0] // Display date only
-                          : '',
-                      style: TextStyle(fontSize: 12, color: Colors.grey),
+        child: _mutualFollowers.isEmpty
+            ? Center(child: CircularProgressIndicator()) // Show loading indicator while fetching
+            : ListView.builder(
+                itemCount: _mutualFollowers.length,
+                itemBuilder: (context, index) {
+                  final user = _mutualFollowers[index];
+                  return Card(
+                    elevation: 4,
+                    margin: const EdgeInsets.symmetric(vertical: 8.0),
+                    child: ListTile(
+                      contentPadding: const EdgeInsets.all(16.0),
+                      title: Text(
+                        user['username'] ?? 'Unknown User', // Default name if username is null
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                      ),
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(user['lastMessage'] ?? 'No messages yet'),
+                          SizedBox(height: 4),
+                          Text(
+                            user['timestamp'] != null
+                                ? DateTime.parse(user['timestamp']).toLocal().toString().split(' ')[0] // Display date only
+                                : '',
+                            style: TextStyle(fontSize: 12, color: Colors.grey),
+                          ),
+                        ],
+                      ),
+                      onTap: () => _navigateToMessaging(user['userId'], user['username']), // Ensure 'username' matches the key in your API response
                     ),
-                  ],
-                ),
-                onTap: () => _navigateToMessaging(user['userId']),
+                  );
+                },
               ),
-            );
-          },
-        ),
       ),
     );
   }

@@ -4,6 +4,7 @@ import 'package:frontend/screens/profile_screen.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../utils/api_constant.dart'; // Import the ApiConstants
+import '../utils/constants.dart'; // Import your constants for colors
 
 class SearchScreen extends StatefulWidget {
   final String userId;
@@ -21,7 +22,6 @@ class _SearchScreenState extends State<SearchScreen> {
   List<String> _userInterests = [];
   List<String> _following = [];
   bool _isLoading = true;
-  List<String> _searchedInterests = []; // To store the searched interests
 
   @override
   void initState() {
@@ -77,61 +77,31 @@ class _SearchScreenState extends State<SearchScreen> {
     }
   }
 
-  List<Map<String, dynamic>> _filterUsersByCommonInterests() {
-    return _allUsers.where((user) {
-      return user['customInterests'].any((interest) =>
-          _userInterests.contains(interest));
-    }).toList();
-  }
-
   List<Map<String, dynamic>> _getTopMatches() {
-    List<Map<String, dynamic>> filteredUsers = _filterUsersByCommonInterests();
-    
-    // Sort the filtered users based on the number of interest matches
-    filteredUsers.sort((a, b) {
-      int aMatches = a['customInterests']
-          .where((interest) => _userInterests.contains(interest))
-          .length;
-      int bMatches = b['customInterests']
-          .where((interest) => _userInterests.contains(interest))
-          .length;
-      return bMatches.compareTo(aMatches);
-    });
-
-    return filteredUsers.take(3).toList(); // Limit to 3 matches
+    return _allUsers.where((user) {
+      return user['customInterests'].any((interest) => _userInterests.contains(interest));
+    }).toList()
+      ..sort((a, b) {
+        int aMatches = a['customInterests'].where((interest) => _userInterests.contains(interest)).length;
+        int bMatches = b['customInterests'].where((interest) => _userInterests.contains(interest)).length;
+        return bMatches.compareTo(aMatches);
+      });
   }
 
   void _shuffleAndRefresh() {
-  setState(() {
-    String searchText = _searchController.text.toLowerCase();
-    List<Map<String, dynamic>> filteredMatches;
-
-    // First, filter users by common interests (users with at least one matching interest)
-    filteredMatches = _filterUsersByCommonInterests();
-
-    // If there's search text, filter further by the specific interest entered
-    if (searchText.isNotEmpty) {
-      filteredMatches = filteredMatches.where((user) {
-        final List<dynamic> interests = user['customInterests'] ?? [];
-        return interests.any((interest) =>
-            interest.toString().toLowerCase().contains(searchText));
-      }).toList();
-    }
-
-    // Shuffle the filtered matches
-    filteredMatches.shuffle(Random());
-    _matches = filteredMatches.take(3).toList(); // Limit to 3 matches
-  });
-}
-
-
+    setState(() {
+      _matches.shuffle(Random());
+      _matches = _matches.take(3).toList(); // Limit to 3 matches
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.blueGrey,
+      backgroundColor: const Color.fromARGB(255, 246, 244, 244), // Consistent background color
       appBar: AppBar(
-        title: Text('Search', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+        title: Text('Make Connections', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+        backgroundColor: const Color.fromARGB(255, 246, 244, 244), // Use consistent app bar color
       ),
       body: Padding(
         padding: const EdgeInsets.all(24.0),
@@ -145,27 +115,23 @@ class _SearchScreenState extends State<SearchScreen> {
                 prefixIcon: Icon(Icons.search),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: Colors.grey),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: BorderSide(color: nuBlue), // Consistent focus border color
                 ),
               ),
               onChanged: (value) {
                 setState(() {
-                  // Split input into a list, limit to the first 3 interests
-                  _searchedInterests = _searchController.text.split(',')
-                      .map((interest) => interest.trim())
-                      .toList()
-                      .take(3)
-                      .toList();
-
-                  // Update matches based on the searched interests
-                  _matches = _filterUsersByCommonInterests().where((user) {
+                  String searchText = _searchController.text.toLowerCase();
+                  _matches = _getTopMatches().where((user) {
                     final List<dynamic> interests = user['customInterests'] ?? [];
-                    return interests.any((interest) =>
-                        _searchedInterests.contains(interest));
+                    return interests.any((interest) => interest.toString().toLowerCase().contains(searchText));
                   }).toList().take(3).toList(); // Limit to 3 matches
                 });
               },
             ),
-            SizedBox(height: 10),
             SizedBox(height: 20),
             if (_isLoading)
               Center(child: CircularProgressIndicator())
@@ -185,20 +151,17 @@ class _SearchScreenState extends State<SearchScreen> {
                       child: ListTile(
                         contentPadding: EdgeInsets.all(16),
                         leading: CircleAvatar(
-                          backgroundColor: Colors.yellow,
+                          backgroundColor: nuYellow, // Use a consistent color
                           child: Icon(Icons.person, size: 32),
                         ),
                         title: Text(
-                          '${user['username']} - ${user['customInterests'].join(', ')}',
+                          user['username'],
                           style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                         ),
+                        subtitle: Text(user['customInterests'].join(', ')),
                         trailing: IconButton(
                           icon: Icon(isFollowing ? Icons.check : Icons.person_add),
-                          onPressed: isFollowing
-                              ? null
-                              : () {
-                                  followUser(user['_id']);
-                                },
+                          onPressed: isFollowing ? null : () => followUser(user['_id']),
                         ),
                         onTap: () {
                           Navigator.push(
@@ -213,8 +176,15 @@ class _SearchScreenState extends State<SearchScreen> {
                   },
                 ),
               ),
+            SizedBox(height: 20),
             ElevatedButton(
               onPressed: _shuffleAndRefresh,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: nuBlue, // Match your theme color
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
               child: Text('Refresh Users'),
             ),
           ],

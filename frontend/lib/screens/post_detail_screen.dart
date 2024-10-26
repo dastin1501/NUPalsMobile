@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:frontend/utils/constants.dart';
 import 'package:http/http.dart' as http;
-import '../utils/api_constant.dart'; // Import the ApiConstants
+import '../utils/api_constant.dart';
 
 class PostDetailScreen extends StatefulWidget {
   final String postId;
@@ -38,7 +38,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
       final post = json.decode(response.body);
       setState(() {
         likesCount = post['likes'].length;
-        comments = post['comments']; // Get all comment details
+        comments = post['comments'];
         isLiked = post['likes'].contains(widget.userId);
       });
     } else {
@@ -55,7 +55,6 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
 
     if (response.statusCode == 200) {
       setState(() {
-        // Toggle like/unlike and update likes count accordingly
         isLiked = !isLiked;
         likesCount += isLiked ? 1 : -1;
       });
@@ -78,7 +77,7 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
 
     if (response.statusCode == 200) {
       setState(() {
-        comments.add({'text': comment, 'userId': {'email': 'You'}});
+        comments.add({'text': comment, 'userId': {'email': 'You'}}); // Adjust as per your data structure
       });
     } else {
       print('Failed to add comment: ${response.body}');
@@ -90,112 +89,137 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
     TextEditingController commentController = TextEditingController();
 
     return Scaffold(
+      backgroundColor: const Color.fromARGB(255, 246, 244, 244), // Match HomeScreen background
       appBar: AppBar(
         title: Text('Post Details'),
         backgroundColor: nuYellow,
       ),
-      backgroundColor: nuBlue,
       body: SingleChildScrollView(
         child: Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: const EdgeInsets.all(24.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                'Post Content',
-                style: TextStyle(
-                  color: nuWhite,
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
+              Card(
+                elevation: 4,
+                color: Colors.white,
+                margin: const EdgeInsets.only(bottom: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
                 ),
-              ),
-              SizedBox(height: 8),
-              Text(
-                widget.content,
-                style: TextStyle(
-                  color: nuWhite,
-                  fontSize: 16,
-                ),
-              ),
-              SizedBox(height: 16),
-              if (widget.media.isNotEmpty)
-                Container(
-                  height: 200,
-                  width: double.infinity,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(12),
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        widget.content,
+                        style: TextStyle(color: const Color.fromARGB(255, 0, 0, 0), fontSize: 16),
+                      ),
+                      SizedBox(height: 16),
+                      if (widget.media.isNotEmpty)
+                        GestureDetector(
+                          onTap: () {
+                            // Show full image in a dialog
+                            showDialog(
+                              context: context,
+                              builder: (BuildContext context) {
+                                return Dialog(
+                                  backgroundColor: nuBlue,
+                                  child: Container(
+                                    width: double.infinity,
+                                    child: Image.memory(
+                                      base64Decode(widget.media.split(',')[1]),
+                                      fit: BoxFit.contain,
+                                    ),
+                                  ),
+                                );
+                              },
+                            );
+                          },
+                          child: Container(
+                            height: 200,
+                            width: double.infinity,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Image.memory(
+                              base64Decode(widget.media.split(',')[1]),
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                        ),
+                      SizedBox(height: 16),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          IconButton(
+                            icon: Icon(isLiked ? Icons.favorite : Icons.favorite_border),
+                            color: isLiked ? Colors.red : Colors.grey,
+                            onPressed: _toggleLike,
+                          ),
+                          Text(
+                            '$likesCount likes',
+                            style: TextStyle(color: Colors.grey),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 16),
+                      Text(
+                        'Comments',
+                        style: TextStyle(
+                          color: nuBlue,
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      SizedBox(height: 8),
+                      ListView.builder(
+                        shrinkWrap: true,
+                        physics: NeverScrollableScrollPhysics(),
+                        itemCount: comments.length,
+                        itemBuilder: (context, index) {
+                          final comment = comments[index];
+                          return ListTile(
+                            contentPadding: EdgeInsets.symmetric(vertical: 8.0),
+                            leading: CircleAvatar(
+                              backgroundColor: nuYellow,
+                              child: Icon(Icons.person, color: nuBlue),
+                            ),
+                            title: Text(
+                              '${comment['userId']['firstName']} ${comment['userId']['lastName']}',
+                              style: TextStyle(color: nuBlue, fontWeight: FontWeight.bold),
+                            ),
+                            subtitle: Text(
+                              comment['text'],
+                              style: TextStyle(color: nuWhite),
+                            ),
+                          );
+                        },
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 8.0),
+                        child: TextField(
+                          controller: commentController,
+                          decoration: InputDecoration(
+                            hintText: 'Add a comment...',
+                            hintStyle: TextStyle(color: Colors.white70),
+                            filled: true,
+                            fillColor: Colors.white24,
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide.none,
+                            ),
+                          ),
+                          style: TextStyle(color: nuWhite),
+                          onSubmitted: (value) {
+                            _addComment(value);
+                            commentController.clear();
+                          },
+                        ),
+                      ),
+                    ],
                   ),
-                  child: Image.memory(
-                    base64Decode(widget.media.split(',')[1]),
-                    fit: BoxFit.cover,
-                  ),
-                ),
-              SizedBox(height: 16),
-              Row(
-                children: [
-                  IconButton(
-                    icon: Icon(isLiked ? Icons.favorite : Icons.favorite_border),
-                    color: isLiked ? Colors.red : Colors.white,
-                    onPressed: _toggleLike,
-                  ),
-                  Text(
-                    '$likesCount likes',
-                    style: TextStyle(color: nuWhite),
-                  ),
-                ],
-              ),
-              SizedBox(height: 16),
-              Text(
-                'Comments',
-                style: TextStyle(
-                  color: nuWhite,
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              SizedBox(height: 8),
-              ListView.builder(
-                shrinkWrap: true, // Ensure it works inside SingleChildScrollView
-                physics: NeverScrollableScrollPhysics(), // Prevent list from scrolling independently
-                itemCount: comments.length,
-                itemBuilder: (context, index) {
-                  final comment = comments[index];
-                  return ListTile(
-                    contentPadding: EdgeInsets.symmetric(vertical: 8.0),
-                    leading: CircleAvatar(
-                      backgroundColor: nuYellow,
-                      child: Icon(Icons.person, color: nuBlue),
-                    ),
-                    title: Text(
-                      '${comment['userId']['firstName']} ${comment['userId']['lastName']}', // Display first and last name
-                      style: TextStyle(color: nuYellow, fontWeight: FontWeight.bold),
-                    ),
-                    subtitle: Text(
-                      comment['text'],
-                      style: TextStyle(color: nuWhite),
-                    ),
-                  );
-                },
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8.0),
-                child: TextField(
-                  controller: commentController,
-                  decoration: InputDecoration(
-                    hintText: 'Add a comment...',
-                    hintStyle: TextStyle(color: Colors.white70),
-                    filled: true,
-                    fillColor: Colors.white24,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide.none,
-                    ),
-                  ),
-                  style: TextStyle(color: nuWhite),
-                  onSubmitted: (value) {
-                    _addComment(value);
-                    commentController.clear();
-                  },
                 ),
               ),
             ],
