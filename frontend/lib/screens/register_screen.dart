@@ -1,11 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/utils/api_constant.dart';
 import 'package:frontend/utils/constants.dart';
-import 'package:image_picker/image_picker.dart';
 import 'dart:typed_data';
 import 'package:http/http.dart' as http;
-import 'package:http_parser/http_parser.dart';
-import 'package:mime/mime.dart';
 import 'dart:convert';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -20,9 +17,6 @@ class RegisterScreen extends StatefulWidget {
 }
 
 class _RegisterScreenState extends State<RegisterScreen> {
-  Uint8List? _image;
-  final ImagePicker _picker = ImagePicker();
-
   // Controllers for form fields
   final TextEditingController _firstNameController = TextEditingController();
   final TextEditingController _lastNameController = TextEditingController();
@@ -33,7 +27,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final TextEditingController _rePasswordController = TextEditingController();
 
   String? _selectedCollege;
-  String? _selectedYearLevel;
 
   List<String> collegeDepartments = [
     'College of Allied Health',
@@ -44,8 +37,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
     'College of Engineering',
     'College of Hospitality & Tourism Management'
   ];
-
-  List<String> yearLevels = ['1st Year', '2nd Year', '3rd Year', '4th Year', 'Irregular', 'Transferee'];
 
   Future<void> _pickDate() async {
     DateTime? selectedDate = await showDatePicker(
@@ -82,16 +73,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
     return age;
   }
 
-  Future<void> _pickImage() async {
-    final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
-    if (pickedFile != null) {
-      final bytes = await pickedFile.readAsBytes();
-      setState(() {
-        _image = bytes;
-      });
-    }
-  }
-
   bool _isStrongPassword(String password) {
     final regex = RegExp(r'^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$');
     return regex.hasMatch(password);
@@ -106,8 +87,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         _ageController.text.isEmpty ||
         _passwordController.text.isEmpty ||
         _rePasswordController.text.isEmpty ||
-        _selectedCollege == null ||
-        _selectedYearLevel == null) {
+        _selectedCollege == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Please fill in all required fields!')),
       );
@@ -133,21 +113,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
     var uri = Uri.parse('${ApiConstants.baseUrl}/api/profile');
     var request = http.MultipartRequest('POST', uri);
 
-    // Add profile image if selected
-    if (_image != null) {
-      var stream = http.ByteStream.fromBytes(_image!);
-      var length = _image!.length;
-      var mimeType = lookupMimeType('path/to/your/image/file.jpg') ?? 'application/octet-stream'; // Update with the actual path or extension
-      var multipartFile = http.MultipartFile(
-        'profileImage',
-        stream,
-        length,
-        filename: 'profileImage.jpg',
-        contentType: MediaType.parse(mimeType),
-      );
-      request.files.add(multipartFile);
-    }
-
     // Include all fields in the request
     request.fields['firstName'] = _firstNameController.text;
     request.fields['lastName'] = _lastNameController.text;
@@ -156,7 +121,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
     request.fields['age'] = _ageController.text;
     request.fields['birthdate'] = _birthdateController.text;
     request.fields['college'] = _selectedCollege ?? '';
-    request.fields['yearLevel'] = _selectedYearLevel ?? '';
     request.fields['password'] = _passwordController.text;
 
     try {
@@ -199,28 +163,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Center(
-                child: Column(
-                  children: [
-                    Text(
-                      'Profile Image (Optional)',
-                      style: TextStyle(color: nuBlue, fontSize: 16, fontWeight: FontWeight.bold),
-                    ),
-                    SizedBox(height: 10),
-                    GestureDetector(
-                      onTap: _pickImage,
-                      child: CircleAvatar(
-                        radius: 50,
-                        backgroundColor: Colors.grey[300],
-                        backgroundImage: _image != null ? MemoryImage(_image!) : null,
-                        child: _image == null
-                            ? Icon(Icons.camera_alt, size: 50, color: nuWhite)
-                            : null,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
               SizedBox(height: 20),
 
               // First Name field
@@ -332,32 +274,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
               ),
               SizedBox(height: 10),
 
-              // Year Level dropdown
-              DropdownButtonFormField<String>(
-                value: _selectedYearLevel,
-                hint: Text('Select Year Level', style: TextStyle(color: nuBlue)),
-                items: yearLevels.map((String year) {
-                  return DropdownMenuItem(
-                    value: year,
-                    child: Text(year),
-                  );
-                }).toList(),
-                onChanged: (value) {
-                  setState(() {
-                    _selectedYearLevel = value;
-                  });
-                },
-                decoration: InputDecoration(
-                  enabledBorder: UnderlineInputBorder(
-                    borderSide: BorderSide(color: nuBlue),
-                  ),
-                  focusedBorder: UnderlineInputBorder(
-                    borderSide: BorderSide(color: nuYellow),
-                  ),
-                ),
-              ),
-              SizedBox(height: 10),
-
               // Password field
               TextField(
                 controller: _passwordController,
@@ -392,11 +308,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
               ),
               SizedBox(height: 20),
 
-              // Register button
-              ElevatedButton(
-                onPressed: _submitRegistration,
-                style: ElevatedButton.styleFrom(backgroundColor: nuBlue),
-                child: Text('Register', style: TextStyle(color: nuWhite)),
+              // Submit button
+              Center(
+                child: ElevatedButton(
+                  onPressed: _submitRegistration,
+                  child: Text('Register', style: TextStyle(color: nuWhite)),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: nuBlue,
+                    padding: EdgeInsets.symmetric(horizontal: 50, vertical: 15),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                  ),
+                ),
               ),
             ],
           ),

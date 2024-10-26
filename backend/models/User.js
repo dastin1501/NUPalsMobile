@@ -9,7 +9,6 @@ const userSchema = new Schema({
   username: { type: String, required: true, unique: true },
   age: { type: Number, default: null },
   college: { type: String, default: '' },
-  yearLevel: { type: String, default: '' },
   bio: { type: String, default: '' },
   profilePicture: { type: String, default: '' },
   customInterests: { type: [String], default: [] }, // New field for custom interests
