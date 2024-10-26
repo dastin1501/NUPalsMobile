@@ -125,7 +125,7 @@ router.post('/reset-password', async (req, res) => {
  
   res.status(200).json({ message: 'Password reset successfully' });
 });
- 
+
 // Route to handle user registration
 router.post('/register', async (req, res) => {
   const { email, username, password, age, college, yearLevel, bio } = req.body;
@@ -162,6 +162,7 @@ router.post('/register', async (req, res) => {
   }
 });
  
+
 
 // Login route
 router.post('/login', async (req, res) => {
@@ -223,5 +224,37 @@ router.post('/logout', async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 });
+
+router.post('/change-password', async (req, res) => {
+  const { userId, oldPassword, newPassword } = req.body;
+
+  // Check for valid user ID
+  if (!userId) {
+      return res.status(400).json({ message: 'User ID is required' });
+  }
+
+  try {
+      const user = await User.findById(userId);
+      if (!user) {
+          return res.status(404).json({ message: 'User not found' });
+      }
+
+      const isMatch = await bcrypt.compare(oldPassword, user.password);
+      if (!isMatch) {
+          return res.status(400).json({ message: 'Old password is incorrect' });
+      }
+
+      // Hash the new password and update it
+      user.password = await bcrypt.hash(newPassword, 10);
+      await user.save();
+
+      return res.status(200).json({ message: 'Password changed successfully' });
+  } catch (error) {
+      console.error(error);
+      return res.status(500).json({ message: 'Error changing password' });
+  }
+});
+
+
 
 module.exports = router;

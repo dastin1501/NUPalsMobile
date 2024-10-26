@@ -16,11 +16,14 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   bool codeSent = false;
 
   Future<void> _requestVerificationCode() async {
+    // Append the fixed domain to the email
+    final email = "${_emailController.text}@students.national-u.edu.ph";
+
     try {
       final response = await http.post(
         Uri.parse('${ApiConstants.baseUrl}/api/auth/forgot-password'),
         headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'email': _emailController.text}),
+        body: jsonEncode({'email': email}),
       );
 
       if (response.statusCode == 200) {
@@ -44,12 +47,15 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   }
 
   Future<void> _resetPassword() async {
+    // Append the fixed domain to the email
+    final email = "${_emailController.text}@students.national-u.edu.ph";
+
     try {
       final response = await http.post(
         Uri.parse('${ApiConstants.baseUrl}/api/auth/reset-password'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
-          'email': _emailController.text,
+          'email': email,
           'code': _codeController.text,
           'newPassword': _newPasswordController.text,
         }),
@@ -76,52 +82,108 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Forgot Password'), backgroundColor: nuYellow),
-      body: Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: _emailController,
-              decoration: InputDecoration(
-                labelText: 'Email',
-                prefixIcon: Icon(Icons.email, color: nuBlue),
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-              ),
-            ),
-            SizedBox(height: 16),
-            if (codeSent) ...[
-              TextField(
-                controller: _codeController,
-                decoration: InputDecoration(
-                  labelText: 'Verification Code',
-                  prefixIcon: Icon(Icons.code, color: nuBlue),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+      body: Container(
+        decoration: BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage('assets/bg.png'), // Background image
+            fit: BoxFit.cover,
+          ),
+        ),
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: SizedBox(
+              width: 400, // Fixed width for consistency
+              child: Card(
+                color: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                elevation: 8,
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // Logo widget
+                      Image.asset(
+                        'assets/logo.png',
+                        height: 100, // Adjust height as needed
+                      ),
+                      SizedBox(height: 16),
+                      Text(
+                        'Forgot Password',
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: const Color.fromARGB(255, 53, 64, 143),
+                        ),
+                      ),
+                      SizedBox(height: 16),
+                      TextField(
+                        controller: _emailController,
+                        decoration: InputDecoration(
+                          labelText: 'Enter University ID',
+                          prefixIcon: Icon(Icons.email, color: nuBlue),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          suffixText: '@students.national-u.edu.ph', // Fixed domain
+                        ),
+                      ),
+                      SizedBox(height: 16),
+                      if (codeSent) ...[
+                        TextField(
+                          controller: _codeController,
+                          decoration: InputDecoration(
+                            labelText: 'Verification Code',
+                            prefixIcon: Icon(Icons.code, color: nuBlue),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                        ),
+                        SizedBox(height: 16),
+                        TextField(
+                          controller: _newPasswordController,
+                          decoration: InputDecoration(
+                            labelText: 'New Password',
+                            prefixIcon: Icon(Icons.lock, color: nuBlue),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                          obscureText: true,
+                        ),
+                      ],
+                      SizedBox(height: 24),
+                      ElevatedButton(
+                        onPressed: codeSent ? _resetPassword : _requestVerificationCode,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: nuYellow,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          padding: EdgeInsets.symmetric(vertical: 14),
+                        ),
+                        child: Text(codeSent ? 'Reset Password' : 'Request Code'),
+                      ),
+                      SizedBox(height: 16),
+                      TextButton(
+                        onPressed: () {
+                          Navigator.pop(context); // Navigate back to the login screen
+                        },
+                        child: Text(
+                          'Back to Login',
+                          style: TextStyle(color: const Color.fromARGB(255, 65, 65, 65)),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-              SizedBox(height: 16),
-              TextField(
-                controller: _newPasswordController,
-                decoration: InputDecoration(
-                  labelText: 'New Password',
-                  prefixIcon: Icon(Icons.lock, color: nuBlue),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                ),
-                obscureText: true,
-              ),
-            ],
-            SizedBox(height: 24),
-            ElevatedButton(
-              onPressed: codeSent ? _resetPassword : _requestVerificationCode,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: nuYellow,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                padding: EdgeInsets.symmetric(vertical: 14),
-              ),
-              child: Text(codeSent ? 'Reset Password' : 'Request Code'),
             ),
-          ],
+          ),
         ),
       ),
     );

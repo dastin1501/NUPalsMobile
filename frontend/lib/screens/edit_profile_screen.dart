@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:frontend/screens/changepassword_screen.dart';
 import 'package:frontend/screens/forgotpassword_screen.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -229,7 +230,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => ForgotPasswordScreen(), // Navigate to the forgot password screen
+                          builder: (context) => ChangePasswordScreen(userId: widget.userId), // Pass the actual userId here
                         ),
                       );
                     },
@@ -237,7 +238,6 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   ),
                 ),
                 SizedBox(height: 24),
-
                 // Button to change interests
                 Center(
                   child: ElevatedButton(

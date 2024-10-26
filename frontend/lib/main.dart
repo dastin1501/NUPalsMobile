@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:frontend/screens/changepassword_screen.dart';
 import 'package:frontend/screens/feedback_screen.dart';
 import 'package:frontend/screens/forgotpassword_screen.dart';
 import 'package:frontend/screens/profile_screen.dart';
@@ -68,6 +69,7 @@ class MyApp extends StatelessWidget {
             '/notifications': (context) => NotificationsScreen(userId: userId!),
             '/feedback': (context) => FeedbackScreen(userId: userId!),
             '/report': (context) => ReportScreen(userId: userId!),
+            '/changepass': (context) => ChangePasswordScreen(userId: userId!),
           },
         );
       },
