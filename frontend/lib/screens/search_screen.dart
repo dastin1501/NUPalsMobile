@@ -1,6 +1,6 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
-import 'package:frontend/screens/profile_screen.dart';
+import 'package:frontend/screens/view_profile_screen.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../utils/api_constant.dart'; // Import the ApiConstants
@@ -31,26 +31,29 @@ class _SearchScreenState extends State<SearchScreen> {
   }
 
   Future<void> _fetchUserInterests() async {
-    try {
-      final response = await http.get(Uri.parse('${ApiConstants.baseUrl}/api/users/profile/${widget.userId}'));
-      if (response.statusCode == 200) {
-        final user = jsonDecode(response.body);
-        setState(() {
-          _userInterests = List<String>.from(user['customInterests']);
-          _following = List<String>.from(user['follows'] ?? []);
-        });
-      } else {
-        throw Exception('Failed to load user interests');
-      }
-    } catch (error) {
+  try {
+    final response = await http.get(Uri.parse('${ApiConstants.baseUrl}/api/users/profile/${widget.userId}'));
+    if (response.statusCode == 200) {
+      final user = jsonDecode(response.body);
+
       setState(() {
-        _isLoading = false;
+        _userInterests = List<String>.from(user['customInterests']);
+        // Map `following` IDs to strings explicitly
+        _following = List<String>.from(user['following'].map((f) => f.toString()));
       });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to load user interests: ${error.toString()}')),
-      );
+    } else {
+      throw Exception('Failed to load user interests');
     }
+  } catch (error) {
+    setState(() {
+      _isLoading = false;
+    });
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Failed to load user interests: ${error.toString()}')),
+    );
   }
+}
+
 
   Future<void> _fetchAllUsers() async {
     try {
@@ -61,7 +64,7 @@ class _SearchScreenState extends State<SearchScreen> {
           _allUsers = users.cast<Map<String, dynamic>>()
               .where((user) => user['_id'] != widget.userId)
               .toList();
-          _matches = _getTopMatches(); // Initial matches
+          _matches = _getTopMatches().take(3).toList(); // Initial matches
           _isLoading = false;
         });
       } else {
@@ -95,19 +98,26 @@ class _SearchScreenState extends State<SearchScreen> {
     });
   }
 
+  
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color.fromARGB(255, 246, 244, 244), // Consistent background color
-      appBar: AppBar(
-        title: Text('Make Connections', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
-        backgroundColor: const Color.fromARGB(255, 246, 244, 244), // Use consistent app bar color
-      ),
       body: Padding(
         padding: const EdgeInsets.all(24.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            Text(
+              'Make Connections',
+              style: TextStyle(
+                color: nuBlue, // Apply nuBlue for text
+                fontSize: 28,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            SizedBox(height: 20),
             TextField(
               controller: _searchController,
               decoration: InputDecoration(
@@ -150,24 +160,32 @@ class _SearchScreenState extends State<SearchScreen> {
                       ),
                       child: ListTile(
                         contentPadding: EdgeInsets.all(16),
-                        leading: CircleAvatar(
-                          backgroundColor: nuYellow, // Use a consistent color
-                          child: Icon(Icons.person, size: 32),
-                        ),
+leading: CircleAvatar(
+  backgroundColor: nuBlue,
+  backgroundImage: user['profilePicture'] != null && user['profilePicture'].isNotEmpty
+      ? MemoryImage(base64Decode(user['profilePicture']!.split(',').last)) // Remove the prefix and decode
+      : AssetImage('assets/images/profile_pic.jpg') as ImageProvider,
+),
+
                         title: Text(
                           user['username'],
                           style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                         ),
                         subtitle: Text(user['customInterests'].join(', ')),
-                        trailing: IconButton(
-                          icon: Icon(isFollowing ? Icons.check : Icons.person_add),
-                          onPressed: isFollowing ? null : () => followUser(user['_id']),
-                        ),
+ trailing: IconButton(
+  icon: Icon(
+    _following.contains(user['_id']) ? Icons.check_circle : Icons.person_add,
+    color: _following.contains(user['_id']) ? Colors.green : null, // Green for followed
+  ),
+  onPressed: _following.contains(user['_id'])
+      ? null // Disable button if already following
+      : () => followUser(user['_id']), // Enable follow action if not followed
+),
                         onTap: () {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => ProfileScreen(userId: user['_id']),
+                              builder: (context) => ViewProfileScreen(userId: user['_id']),
                             ),
                           );
                         },
@@ -185,7 +203,10 @@ class _SearchScreenState extends State<SearchScreen> {
                   borderRadius: BorderRadius.circular(12),
                 ),
               ),
-              child: Text('Refresh Users'),
+              child: Text(
+  'Refresh Users',
+  style: TextStyle(color: Colors.white),
+),
             ),
           ],
         ),
@@ -200,18 +221,22 @@ class _SearchScreenState extends State<SearchScreen> {
       body: jsonEncode({'followId': userIdToFollow}),
     );
 
-    if (response.statusCode == 200) {
-      setState(() {
-        _fetchAllUsers();
-      });
+   if (response.statusCode == 200) {
+    setState(() {
+      // Update the following list immediately
+      _following.add(userIdToFollow); // Add the new followed user
+      // Optional: Refresh the user list if necessary
+      // _fetchAllUsers(); // Comment this out if you want to avoid resetting
+    });
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('User followed')),
-      );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to follow user: ${response.body}')),
-      );
-    }
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('User followed')),
+    );
+  } else {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Failed to follow user: ${response.body}')),
+    );
+  }
+
   }
 }

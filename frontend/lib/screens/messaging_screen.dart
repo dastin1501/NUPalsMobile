@@ -144,84 +144,90 @@ class _MessagingScreenState extends State<MessagingScreen> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: GestureDetector(
-          onTap: () {
-            // Navigate to the other user's profile screen (replace with your actual profile route)
-            Navigator.pushNamed(context, '/profile', arguments: widget.otherUserId);
-          },
-          child: Text(
-            widget.otherUserName, // Display the username here
-            style: TextStyle(color: Colors.white, fontSize: 18),
+Widget build(BuildContext context) {
+  return Scaffold(
+    appBar: AppBar(
+      title: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          GestureDetector(
+            onTap: () {
+              // Navigate to the other user's profile screen
+              Navigator.pushNamed(context, '/viewprofile', arguments: widget.otherUserId);
+            },
+            child: Text(
+              widget.otherUserName, // Display the username here
+              style: TextStyle(color: Colors.white, fontSize: 18),
+            ),
           ),
-        ),
-        backgroundColor: nuBlue,
-        actions: [
-          IconButton(
-            icon: Icon(Icons.report), // Use the report icon
+         IconButton(
+            icon: Icon(
+              Icons.report, // Use the report icon
+              color: Colors.red, // Set the icon color to red
+            ),
             onPressed: _reportUser, // Call report function
           ),
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            Expanded(
-              child: ListView.builder(
-                controller: _scrollController,
-                reverse: true,
-                itemCount: _messages.length,
-                itemBuilder: (context, index) {
-                  final message = _messages[_messages.length - 1 - index];
-                  final isMe = message['senderId'] == widget.userId;
+      backgroundColor: nuBlue,
+    ),
+    body: Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        children: [
+          Expanded(
+            child: ListView.builder(
+              controller: _scrollController,
+              reverse: true,
+              itemCount: _messages.length,
+              itemBuilder: (context, index) {
+                final message = _messages[_messages.length - 1 - index];
+                final isMe = message['senderId'] == widget.userId;
 
-                  return Align(
-                    alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
-                    child: Container(
-                      margin: EdgeInsets.only(top: 8.0, bottom: 8.0),
-                      padding: EdgeInsets.all(12.0),
-                      decoration: BoxDecoration(
-                        color: isMe ? nuBlue : Colors.grey[200],
-                        borderRadius: BorderRadius.circular(12.0),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            message['content'],
-                            style: TextStyle(color: isMe ? Colors.white : Colors.black),
-                          ),
-                          SizedBox(height: 4.0),
-                          Text(
-                            _formatTimestamp(message['createdAt']),
-                            style: TextStyle(
-                              color: isMe ? Colors.white70 : Colors.black54,
-                              fontSize: 12.0,
-                            ),
-                          ),
-                        ],
-                      ),
+                return Align(
+                  alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
+                  child: Container(
+                    margin: EdgeInsets.only(top: 8.0, bottom: 8.0),
+                    padding: EdgeInsets.all(12.0),
+                    decoration: BoxDecoration(
+                      color: isMe ? nuBlue : Colors.grey[200],
+                      borderRadius: BorderRadius.circular(12.0),
                     ),
-                  );
-                },
+                    child: Column(
+                      crossAxisAlignment: isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          message['content'],
+                          style: TextStyle(color: isMe ? Colors.white : Colors.black),
+                        ),
+                        SizedBox(height: 4.0),
+                        Text(
+                          _formatTimestamp(message['createdAt']),
+                          style: TextStyle(
+                            color: isMe ? Colors.white70 : Colors.black54,
+                            fontSize: 12.0,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+          TextField(
+            controller: _messageController,
+            decoration: InputDecoration(
+              labelText: 'Type your message...',
+              suffixIcon: IconButton(
+                icon: Icon(Icons.send),
+                onPressed: _sendMessage,
               ),
             ),
-            TextField(
-              controller: _messageController,
-              decoration: InputDecoration(
-                labelText: 'Type your message...',
-                suffixIcon: IconButton(
-                  icon: Icon(Icons.send),
-                  onPressed: _sendMessage,
-                ),
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
-    );
-  }
+    ),
+  );
+}
 }

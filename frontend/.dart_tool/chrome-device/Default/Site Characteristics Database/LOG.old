@@ -1,7 +1,16 @@
-2024/10/27-04:40:41.342 4110 Reusing MANIFEST C:\Users\Dastin\AppData\Local\Temp\flutter_tools.e98df042\flutter_tools_chrome_device.13b22fd7\Default\Site Characteristics Database/MANIFEST-000001
-2024/10/27-04:40:41.343 4110 Recovering log #10
-2024/10/27-04:40:41.343 4110 Reusing old log C:\Users\Dastin\AppData\Local\Temp\flutter_tools.e98df042\flutter_tools_chrome_device.13b22fd7\Default\Site Characteristics Database/000010.log 
-2024/10/27-04:40:41.344 4110 Delete type=0 #3
-2024/10/27-04:40:41.344 4110 Delete type=2 #4
-2024/10/27-04:40:41.344 4110 Delete type=2 #6
-2024/10/27-04:40:41.344 4110 Delete type=0 #6
+2024/10/27-14:03:28.819 4240 Reusing MANIFEST C:\Users\Rimiru\AppData\Local\Temp\flutter_tools.e91ac033\flutter_tools_chrome_device.9249c3c2\Default\Site Characteristics Database/MANIFEST-000001
+2024/10/27-14:03:28.820 4240 Recovering log #3
+2024/10/27-14:03:28.820 4240 Level-0 table #3: started
+2024/10/27-14:03:28.831 4240 Level-0 table #3: 259 bytes OK
+2024/10/27-14:03:28.831 4240 Recovering log #6
+2024/10/27-14:03:28.831 4240 Level-0 table #4: started
+2024/10/27-14:03:28.955 4240 Level-0 table #4: 565 bytes OK
+2024/10/27-14:03:28.956 4240 Recovering log #10
+2024/10/27-14:03:29.018 4240 Reusing old log C:\Users\Rimiru\AppData\Local\Temp\flutter_tools.e91ac033\flutter_tools_chrome_device.9249c3c2\Default\Site Characteristics Database/000010.log 
+2024/10/27-14:03:29.027 4240 Delete type=0 #3
+2024/10/27-14:03:29.027 4240 Delete type=2 #6
+2024/10/27-14:03:29.027 4240 Delete type=0 #6
+2024/10/27-14:03:29.027 4240 Delete type=2 #7
+2024/10/27-14:03:29.027 4240 Delete type=2 #11
+2024/10/27-14:03:29.027 4240 Delete type=2 #13
+2024/10/27-14:03:29.027 4240 Delete type=2 #14

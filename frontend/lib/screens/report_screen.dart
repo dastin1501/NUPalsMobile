@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:frontend/utils/constants.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
@@ -50,8 +51,11 @@ class _ReportScreenState extends State<ReportScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Report User'),
-        backgroundColor: Colors.redAccent,
+       title: Text(
+  'Report User',
+  style: TextStyle(color: Colors.white), // Set the text color to white
+),
+        backgroundColor: nuBlue,
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -76,10 +80,10 @@ class _ReportScreenState extends State<ReportScreen> {
                 ? CircularProgressIndicator()
                 : ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.redAccent,
+                      backgroundColor: nuBlue,
                     ),
                     onPressed: submitReport,
-                    child: Text('Submit Report'),
+                    child: Text('Submit Report', style: TextStyle(color: Colors.white),),
                   ),
           ],
         ),

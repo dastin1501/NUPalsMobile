@@ -21,7 +21,7 @@ router.get('/profile/:userId', async (req, res) => {
   const { userId } = req.params;
   try {
     const user = await User.findById(userId)
-      .select('firstName lastName email username age college yearLevel bio customInterests categorizedInterests followers following profileImage'); // Include interests in the select statement
+      .select('firstName lastName email username age college bio customInterests categorizedInterests followers following profileImage'); // Include interests in the select statement
 
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
@@ -59,7 +59,9 @@ router.get('/mutual-followers/:userId', async (req, res) => {
         mutualFollowers.add({
           userId: follower._id,
           username: follower.username,
+          profilePicture: follower.profilePicture || null, // Include profile picture
           lastMessage: lastMessage ? lastMessage.content : 'No messages exchanged',
+          timestamp: lastMessage ? lastMessage.createdAt : null, // Include timestamp for last message
         });
       }
     }

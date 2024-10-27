@@ -16,22 +16,25 @@ router.get('/', async (req, res) => {
 });
 
 
+
 // Route to get a single post with its details
 router.get('/:id', async (req, res) => {
   try {
     const post = await Post.findById(req.params.id)
-      .populate('userId', 'email firstName lastName') // Populate the userId to get email, firstName, and lastName
+      .populate('userId', 'email firstName lastName') // Populate userId on the post level
       .populate({
-        path: 'comments.userId', // Populate userId in comments
-        select: 'firstName lastName' // Select firstName and lastName from User model
+        path: 'comments.userId', // Populate userId in each comment
+        model: 'User', // Specify the model if needed (e.g., 'User')
+        select: 'firstName lastName profilePicture' // Select fields, including profilePicture
       });
- 
+
     if (!post) return res.status(404).json({ message: 'Post not found' });
     res.status(200).json(post);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 });
+
 
 // Route to like or unlike a post
 router.post('/:id/like', async (req, res) => {

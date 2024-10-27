@@ -4,6 +4,7 @@
   import 'package:frontend/screens/feedback_screen.dart';
   import 'package:frontend/screens/forgotpassword_screen.dart';
   import 'package:frontend/screens/profile_screen.dart';
+  import 'package:frontend/screens/view_profile_screen.dart';
   import 'package:frontend/screens/report_screen.dart';
   import 'package:frontend/screens/search_screen.dart';
   import 'package:frontend/screens/home_screen.dart';
@@ -65,6 +66,8 @@
               '/survey': (context) => SurveyScreen(email: '', userId: ''),
               '/profile': (context) {final String userId = ModalRoute.of(context)!.settings.arguments as String; // Get userId from arguments
                 return ProfileScreen(userId: userId); },
+              '/viewprofile': (context) {final String userId = ModalRoute.of(context)!.settings.arguments as String; // Get userId from arguments
+                return ViewProfileScreen(userId: userId); },
               '/messages': (context) {String otherUserId = 'someOtherUserId'; // Replace this with the actual value
                                       String otherUserName = 'someOtherUserName'; // Replace this with the actual value
                 return MessagingScreen(userId: userId!, otherUserId: otherUserId, otherUserName: otherUserName);},
@@ -191,7 +194,7 @@
             children: <Widget>[
               DrawerHeader(
                 decoration: BoxDecoration(
-                  color: Colors.blue,
+                  color: nuBlue,
                 ),
                 child: Text(
                   'Menu',

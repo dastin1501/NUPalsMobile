@@ -128,7 +128,7 @@ router.post('/reset-password', async (req, res) => {
 
 // Route to handle user registration
 router.post('/register', async (req, res) => {
-  const { email, username, password, age, college, yearLevel, bio } = req.body;
+  const { email, username, password, age, college, bio } = req.body;
  
   // Check if the user already exists
   const existingUser = await User.findOne({ email });
@@ -146,7 +146,6 @@ router.post('/register', async (req, res) => {
     username,
     age,
     college,
-    yearLevel,
     bio,
   });
  

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:frontend/utils/constants.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'group_message_screen.dart'; // Import your GroupMessageScreen
@@ -96,8 +97,8 @@ class _GroupInboxScreenState extends State<GroupInboxScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Group Inbox'),
-        backgroundColor: Colors.blueAccent,
+        title: Text('Group Inbox', style: TextStyle(color: Colors.white)),
+        backgroundColor: nuBlue,
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),

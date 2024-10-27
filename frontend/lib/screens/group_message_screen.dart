@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:frontend/utils/constants.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:intl/intl.dart';
@@ -141,8 +142,8 @@ void _scrollToBottom() {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Group Messages'),
-        backgroundColor: Colors.blueAccent,
+        title: Text('Group Messages', style: TextStyle(color: Colors.white)),
+        backgroundColor: nuBlue,
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),

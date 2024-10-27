@@ -1,11 +1,10 @@
-// frontend/notifications_screen.dart
-
 import 'package:flutter/material.dart';
+import 'package:frontend/utils/constants.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../models/user_notification.dart';
 import '../utils/api_constant.dart';
-import 'profile_screen.dart'; // Import your existing ProfileScreen
+import 'view_profile_screen.dart'; // Import your existing ProfileScreen
 
 class NotificationsScreen extends StatefulWidget {
   final String userId;
@@ -40,7 +39,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Notifications'),
+        title: Text('Notifications', style: TextStyle(color: Colors.white)),
+        backgroundColor: nuBlue,
       ),
       body: FutureBuilder<List<UserNotification>>(
         future: _notificationsFuture,
@@ -64,14 +64,38 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => ProfileScreen(userId: notification.senderId), // Use senderId
+                        builder: (context) => ViewProfileScreen(userId: notification.senderId), // Use senderId
                       ),
                     );
                   },
-                  child: ListTile(
-                    title: Text(notification.message),
-                    subtitle: Text('Received on ${notification.timestamp}'),
-                    trailing: Icon(Icons.notifications),
+                  child: Card(
+                    elevation: 2,
+                    margin: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Row(
+                        children: [
+                          Icon(Icons.notifications, color: nuBlue, size: 28), // Notification icon
+                          SizedBox(width: 16),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  notification.message,
+                                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                                ),
+                                SizedBox(height: 4),
+                                Text(
+                                  'Received on ${notification.timestamp}',
+                                  style: TextStyle(color: Colors.grey[600], fontSize: 14),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                 );
               },

@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:frontend/utils/constants.dart';
 import 'package:http/http.dart' as http;
 import '../models/feedback.dart'; 
 import '../utils/api_constant.dart'; // Import the API constants
@@ -52,7 +53,8 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Feedback')),
+      appBar: AppBar(title: Text('Feedback', style: TextStyle(color: Colors.white)),
+      backgroundColor: nuBlue,),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(

@@ -14,10 +14,15 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   final TextEditingController _codeController = TextEditingController();
   final TextEditingController _newPasswordController = TextEditingController();
   bool codeSent = false;
+  bool _isLoadingRequestCode = false; // Loading state for request code
+  bool _isLoadingResetPassword = false; // Loading state for password reset
 
   Future<void> _requestVerificationCode() async {
-    // Append the fixed domain to the email
     final email = "${_emailController.text}@students.national-u.edu.ph";
+    
+    setState(() {
+      _isLoadingRequestCode = true; // Start loading
+    });
 
     try {
       final response = await http.post(
@@ -25,6 +30,10 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'email': email}),
       );
+
+      setState(() {
+        _isLoadingRequestCode = false; // Stop loading
+      });
 
       if (response.statusCode == 200) {
         setState(() {
@@ -39,6 +48,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         );
       }
     } catch (error) {
+      setState(() {
+        _isLoadingRequestCode = false; // Stop loading on error
+      });
       print('Error requesting verification code: $error');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('An error occurred')),
@@ -47,8 +59,11 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   }
 
   Future<void> _resetPassword() async {
-    // Append the fixed domain to the email
     final email = "${_emailController.text}@students.national-u.edu.ph";
+
+    setState(() {
+      _isLoadingResetPassword = true; // Start loading
+    });
 
     try {
       final response = await http.post(
@@ -61,6 +76,10 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         }),
       );
 
+      setState(() {
+        _isLoadingResetPassword = false; // Stop loading
+      });
+
       if (response.statusCode == 200) {
         Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
@@ -72,6 +91,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         );
       }
     } catch (error) {
+      setState(() {
+        _isLoadingResetPassword = false; // Stop loading on error
+      });
       print('Error resetting password: $error');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('An error occurred')),
@@ -157,17 +179,21 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                         ),
                       ],
                       SizedBox(height: 24),
-                      ElevatedButton(
-                        onPressed: codeSent ? _resetPassword : _requestVerificationCode,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: nuYellow,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                      // Show loading indicator or button based on request state
+                      if (_isLoadingRequestCode || _isLoadingResetPassword)
+                        CircularProgressIndicator()
+                      else
+                        ElevatedButton(
+                          onPressed: codeSent ? _resetPassword : _requestVerificationCode,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: nuYellow,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            padding: EdgeInsets.symmetric(vertical: 14),
                           ),
-                          padding: EdgeInsets.symmetric(vertical: 14),
+                          child: Text(codeSent ? 'Reset Password' : 'Request Code'),
                         ),
-                        child: Text(codeSent ? 'Reset Password' : 'Request Code'),
-                      ),
                       SizedBox(height: 16),
                       TextButton(
                         onPressed: () {

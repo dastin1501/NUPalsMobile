@@ -13,10 +13,15 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  bool _isLoading = false; // Loading state variable
 
   Future<void> _login() async {
     // Append the fixed domain to the email
     final email = "${_emailController.text}@test.com";
+
+    setState(() {
+      _isLoading = true; // Set loading to true when starting login
+    });
 
     try {
       final response = await http.post(
@@ -57,6 +62,10 @@ class _LoginScreenState extends State<LoginScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Login error occurred')),
       );
+    } finally {
+      setState(() {
+        _isLoading = false; // Reset loading state regardless of the outcome
+      });
     }
   }
 
@@ -129,18 +138,21 @@ class _LoginScreenState extends State<LoginScreen> {
                             obscureText: true,
                           ),
                           SizedBox(height: 24),
-                          ElevatedButton(
-                            onPressed: _login,
-                            style: ElevatedButton.styleFrom(
-                              foregroundColor: const Color.fromARGB(255, 255, 255, 255),
-                              backgroundColor: nuBlue,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              padding: EdgeInsets.symmetric(vertical: 14),
-                            ),
-                            child: Text('Login'),
-                          ),
+                          // Show loading indicator or login button
+                          _isLoading
+                              ? CircularProgressIndicator() // Show loading spinner
+                              : ElevatedButton(
+                                  onPressed: _login,
+                                  style: ElevatedButton.styleFrom(
+                                    foregroundColor: const Color.fromARGB(255, 255, 255, 255),
+                                    backgroundColor: nuBlue,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    padding: EdgeInsets.symmetric(vertical: 14),
+                                  ),
+                                  child: Text('Login'),
+                                ),
                           SizedBox(height: 16),
                           TextButton(
                             onPressed: () {

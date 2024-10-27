@@ -25,12 +25,31 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
   bool isLiked = false;
   int likesCount = 0;
   List comments = [];
+ String? firstName;
+  String? lastName;
+String? profilePicture;
 
   @override
   void initState() {
     super.initState();
     _fetchPostDetails();
+       _fetchUserDetails(); // Fetch the user's details
   }
+
+Future<void> _fetchUserDetails() async {
+    final response = await http.get(Uri.parse('${ApiConstants.baseUrl}/api/profile/${widget.userId}'));
+    if (response.statusCode == 200) {
+      final user = json.decode(response.body);
+      setState(() {
+        firstName = user['firstName'];
+        lastName = user['lastName'];
+        profilePicture = user['profilePicture'];
+      });
+    } else {
+      print('Failed to fetch user details: ${response.statusCode}');
+    }
+  }
+
 
   Future<void> _fetchPostDetails() async {
     final response = await http.get(Uri.parse('${ApiConstants.baseUrl}/api/posts/${widget.postId}'));
@@ -63,169 +82,207 @@ class _PostDetailScreenState extends State<PostDetailScreen> {
     }
   }
 
-  Future<void> _addComment(String comment) async {
-    if (comment.isEmpty) return;
+   Future<void> _addComment(String comment) async {
+  if (comment.isEmpty) return;
 
-    final response = await http.post(
-      Uri.parse('${ApiConstants.baseUrl}/api/posts/${widget.postId}/comment'),
-      headers: {'Content-Type': 'application/json'},
-      body: json.encode({
-        'userId': widget.userId,
-        'text': comment,
-      }),
-    );
+  final response = await http.post(
+    Uri.parse('${ApiConstants.baseUrl}/api/posts/${widget.postId}/comment'),
+    headers: {'Content-Type': 'application/json'},
+    body: json.encode({
+      'userId': widget.userId,
+      'text': comment,
+    }),
+  );
 
-    if (response.statusCode == 200) {
-      setState(() {
-        comments.add({'text': comment, 'userId': {'email': 'You'}}); // Adjust as per your data structure
-      });
-    } else {
-      print('Failed to add comment: ${response.body}');
-    }
+  if (response.statusCode == 200) {
+    // Fetch user details again after adding a comment
+    await _fetchUserDetails(); 
+
+    setState(() {
+      comments.add({'text': comment, 'userId': {'firstName': firstName, 'lastName': lastName, 'profilePicture': profilePicture}});
+    });
+  } else {
+    print('Failed to add comment: ${response.body}');
   }
-
+}
   @override
-  Widget build(BuildContext context) {
-    TextEditingController commentController = TextEditingController();
+Widget build(BuildContext context) {
+  TextEditingController commentController = TextEditingController();
 
-    return Scaffold(
-      backgroundColor: const Color.fromARGB(255, 246, 244, 244), // Match HomeScreen background
-      appBar: AppBar(
-        title: Text('Post Details'),
-        backgroundColor: nuYellow,
+  return Scaffold(
+    backgroundColor: const Color.fromARGB(255, 246, 244, 244),
+    appBar: AppBar(
+      title: Text(
+        'Post Details',
+        style: TextStyle(color: Colors.white),
       ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Card(
-                elevation: 4,
-                color: Colors.white,
-                margin: const EdgeInsets.only(bottom: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+      backgroundColor: nuBlue,
+    ),
+    body: SingleChildScrollView(
+      child: Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.grey.withOpacity(0.2),
+                spreadRadius: 1,
+                blurRadius: 5,
+                offset: Offset(0, 3), // changes position of shadow
+              ),
+            ],
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Post content
+                Text(
+                  widget.content,
+                  style: TextStyle(color: const Color.fromARGB(255, 0, 0, 0), fontSize: 16),
                 ),
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
+                SizedBox(height: 16),
+                if (widget.media.isNotEmpty)
+                  GestureDetector(
+                    onTap: () {
+                      showDialog(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return Dialog(
+                            backgroundColor: nuBlue,
+                            child: Container(
+                              width: double.infinity,
+                              child: Image.memory(
+                                base64Decode(widget.media.split(',')[1]),
+                                fit: BoxFit.contain,
+                              ),
+                            ),
+                          );
+                        },
+                      );
+                    },
+                    child: Container(
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: Image.memory(
+                          base64Decode(widget.media.split(',')[1]),
+                          fit: BoxFit.cover,
+                          width: double.infinity,
+                        ),
+                      ),
+                    ),
+                  ),
+                SizedBox(height: 16),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    IconButton(
+                      icon: Icon(isLiked ? Icons.favorite : Icons.favorite_border),
+                      color: isLiked ? Colors.red : Colors.grey,
+                      onPressed: _toggleLike,
+                    ),
+                    SizedBox(width: 8),
+                    Text(
+                      '$likesCount likes',
+                      style: TextStyle(color: Colors.grey),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 16),
+                Text(
+                  'Comments',
+                  style: TextStyle(
+                    color: nuBlue,
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                SizedBox(height: 8),
+
+                // Moved the comment input to the top of the container
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8.0),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: commentController,
+                          decoration: InputDecoration(
+                            hintText: 'Add a comment...',
+                            hintStyle: TextStyle(color: const Color.fromARGB(179, 0, 0, 0)),
+                            filled: true,
+                            fillColor: Colors.grey[200], // Light gray color for the input field
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              borderSide: BorderSide.none,
+                            ),
+                          ),
+                          style: TextStyle(color: const Color.fromARGB(255, 1, 0, 0)),
+                        ),
+                      ),
+                      IconButton(
+                        icon: Icon(Icons.send, color: nuBlue), // Send button
+                        onPressed: () {
+                          _addComment(commentController.text);
+                          commentController.clear();
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+                
+                // Container to hold the comments
+                Container(
+                  padding: const EdgeInsets.symmetric(vertical: 8.0),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        widget.content,
-                        style: TextStyle(color: const Color.fromARGB(255, 0, 0, 0), fontSize: 16),
-                      ),
-                      SizedBox(height: 16),
-                      if (widget.media.isNotEmpty)
-                        GestureDetector(
-                          onTap: () {
-                            // Show full image in a dialog
-                            showDialog(
-                              context: context,
-                              builder: (BuildContext context) {
-                                return Dialog(
-                                  backgroundColor: nuBlue,
-                                  child: Container(
-                                    width: double.infinity,
-                                    child: Image.memory(
-                                      base64Decode(widget.media.split(',')[1]),
-                                      fit: BoxFit.contain,
-                                    ),
-                                  ),
-                                );
-                              },
-                            );
-                          },
-                          child: Container(
-                            height: 200,
-                            width: double.infinity,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: Image.memory(
-                              base64Decode(widget.media.split(',')[1]),
-                              fit: BoxFit.cover,
-                            ),
-                          ),
-                        ),
-                      SizedBox(height: 16),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          IconButton(
-                            icon: Icon(isLiked ? Icons.favorite : Icons.favorite_border),
-                            color: isLiked ? Colors.red : Colors.grey,
-                            onPressed: _toggleLike,
-                          ),
-                          Text(
-                            '$likesCount likes',
-                            style: TextStyle(color: Colors.grey),
-                          ),
-                        ],
-                      ),
-                      SizedBox(height: 16),
-                      Text(
-                        'Comments',
-                        style: TextStyle(
-                          color: nuBlue,
-                          fontSize: 22,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      SizedBox(height: 8),
+                      // Comments List
                       ListView.builder(
                         shrinkWrap: true,
                         physics: NeverScrollableScrollPhysics(),
                         itemCount: comments.length,
                         itemBuilder: (context, index) {
                           final comment = comments[index];
+                          final user = comment['userId'];
+
+                          String defaultAssetImage = 'assets/images/profile_pic.jpg';
+
                           return ListTile(
                             contentPadding: EdgeInsets.symmetric(vertical: 8.0),
                             leading: CircleAvatar(
-                              backgroundColor: nuYellow,
-                              child: Icon(Icons.person, color: nuBlue),
+                              backgroundImage: user['profilePicture'] != null && user['profilePicture'].isNotEmpty
+                                  ? MemoryImage(base64Decode(user['profilePicture'].split(',').last))
+                                  : AssetImage(defaultAssetImage) as ImageProvider,
                             ),
                             title: Text(
-                              '${comment['userId']['firstName']} ${comment['userId']['lastName']}',
+                              '${user['firstName']} ${user['lastName']}',
                               style: TextStyle(color: nuBlue, fontWeight: FontWeight.bold),
                             ),
                             subtitle: Text(
                               comment['text'],
-                              style: TextStyle(color: nuWhite),
+                              style: TextStyle(color: const Color.fromARGB(255, 0, 0, 0)),
                             ),
                           );
                         },
                       ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 8.0),
-                        child: TextField(
-                          controller: commentController,
-                          decoration: InputDecoration(
-                            hintText: 'Add a comment...',
-                            hintStyle: TextStyle(color: Colors.white70),
-                            filled: true,
-                            fillColor: Colors.white24,
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide.none,
-                            ),
-                          ),
-                          style: TextStyle(color: nuWhite),
-                          onSubmitted: (value) {
-                            _addComment(value);
-                            commentController.clear();
-                          },
-                        ),
-                      ),
                     ],
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
-    );
-  }
+    ),
+  );
+}
+
 }

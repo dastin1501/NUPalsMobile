@@ -28,14 +28,14 @@ const upload = multer({ storage });
 
 // Register a new user
 router.post('/', upload.single('profileImage'), async (req, res) => {
-  const { firstName, lastName, email, password, username, age, college, yearLevel, customInterests, categorizedInterests } = req.body;
+  const { firstName, lastName, email, password, username, age, college, customInterests, categorizedInterests } = req.body;
   const profileImage = req.file ? req.file.path : undefined;
 
   // Log the incoming request body
   console.log('Incoming Request Body:', req.body);
 
   // Validate required fields
-  const requiredFields = { firstName, lastName, email, password, username, age, college, yearLevel };
+  const requiredFields = { firstName, lastName, email, password, username, age, college };
   for (const [key, value] of Object.entries(requiredFields)) {
     if (!value) {
       console.error(`${key} is required but was not provided:`, value);
@@ -60,7 +60,6 @@ router.post('/', upload.single('profileImage'), async (req, res) => {
       username,
       age,
       college,
-      yearLevel,
       profileImage,
       customInterests: customInterests || [],  // Ensure it's set
       categorizedInterests: categorizedInterests || [] // Ensure it's set
@@ -95,7 +94,7 @@ router.get('/:userId', async (req, res) => {
 
 // Update user profile with image upload
 router.post('/:userId/update', async (req, res) => {
-  const { username, age, college, yearLevel, bio, customInterests, categorizedInterests, profileImage } = req.body;
+  const { username, age, college, bio, customInterests, categorizedInterests, profileImage } = req.body;
 
   try {
     const user = await User.findById(req.params.userId);
@@ -107,7 +106,6 @@ router.post('/:userId/update', async (req, res) => {
     user.username = username || user.username;
     user.age = age || user.age;
     user.college = college || user.college;
-    user.yearLevel = yearLevel || user.yearLevel;
     user.bio = bio || user.bio;
     user.customInterests = customInterests || user.customInterests;
     user.categorizedInterests = categorizedInterests || user.categorizedInterests;
@@ -188,50 +186,79 @@ router.post('/:userId/follow', async (req, res) => {
   }
 });
 
-// Unfollow a user
-// POST follow a user
-router.post('/:userId/follow', async (req, res) => {
-  const { userId } = req.params;
-  const { followId } = req.body; // This is the ID of the user to follow
+router.post('/:followedUserId/followuser', async (req, res) => {
+  const { followId } = req.body; // ID of the current user who is following
 
   try {
-    // Find the user who is following and the user being followed
-    const follower = await User.findById(userId);
-    const followedUser = await User.findById(followId);
+    // Find the user who is being followed
+    const followedUser = await User.findById(req.params.followedUserId);
+    // Find the current user (the follower)
+    const currentUser = await User.findById(followId);
 
-    if (!follower || !followedUser) {
-      return res.status(404).json({ message: 'User not found' });
+    // Check if both users exist
+    if (!followedUser || !currentUser) {
+      return res.status(404).json({ msg: 'User not found' });
     }
 
-    // Check if already following
-    if (follower.follows.includes(followId)) {
-      return res.status(400).json({ message: 'Already following this user' });
+    // Check if the current user is already following the user
+    if (!currentUser.following.includes(followedUser._id)) {
+      // Add the followed user's ID to the current user's following list
+      currentUser.following.push(followedUser._id);
+
+      // Add the current user's ID to the followed user's followers list
+      followedUser.followers.push(currentUser._id);
+
+      // Save changes to both users
+      await currentUser.save();
+      await followedUser.save();
+
+      return res.json({ msg: 'User followed successfully' });
+    } else {
+      return res.status(400).json({ msg: 'You are already following this user' });
     }
-
-    // Update both users
-    follower.follows.push(followId);
-    followedUser.followers.push(userId);
-
-    await follower.save();
-    await followedUser.save();
-
-    // Create a follow notification for the followed user
-    const notificationMessage = `${follower.firstName} ${follower.lastName} started following you.`;
-
-    const notification = new Notification({
-      type: 'follow',
-      senderId: userId,      // The follower
-      receiverId: followId,  // The user being followed
-      message: notificationMessage
-    });
-
-    await notification.save();
-
-    res.status(200).json({ message: 'User followed successfully' });
-  } catch (error) {
-    console.error('Error following user:', error);
-    res.status(500).json({ message: 'Internal server error' });
+  } catch (err) {
+    console.error('Server Error:', err);
+    return res.status(500).send('Server Error');
   }
 });
+
+
+router.post('/:followedUserId/unfollow', async (req, res) => {
+  const { unfollowId } = req.body; // ID of the current user who is unfollowing
+
+  try {
+    // Find the user who is being unfollowed
+    const followedUser = await User.findById(req.params.followedUserId);
+    // Find the current user (the unfollower)
+    const currentUser = await User.findById(unfollowId);
+
+    // Check if both users exist
+    if (!followedUser || !currentUser) {
+      return res.status(404).json({ msg: 'User not found' });
+    }
+
+    // Check if the current user is following the user to unfollow
+    if (currentUser.following.includes(followedUser._id)) {
+      // Remove the followed user's ID from the current user's following list
+      currentUser.following = currentUser.following.filter(id => id.toString() !== followedUser._id.toString());
+
+      // Remove the current user's ID from the unfollowed user's followers list
+      followedUser.followers = followedUser.followers.filter(id => id.toString() !== currentUser._id.toString());
+
+      // Save changes to both users
+      await currentUser.save();
+      await followedUser.save();
+
+      return res.json({ msg: 'User unfollowed successfully' });
+    } else {
+      return res.status(400).json({ msg: 'You are not following this user' });
+    }
+  } catch (err) {
+    console.error('Server Error:', err);
+    return res.status(500).send('Server Error');
+  }
+});
+
+
 
 module.exports = router;
