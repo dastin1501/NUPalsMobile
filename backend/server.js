@@ -17,6 +17,7 @@ const feedbackRoutes = require('./routes/feedback');
 const reportRoute = require('./routes/report');// Import both models
 const User = require('./models/User');
 const multiWordKeywordRoutes = require('./routes/multiWordKeywords');
+const stopwordsRoute = require('./routes/stopwords');
 
 // Load environment variables
 dotenv.config();
@@ -45,6 +46,7 @@ app.use('/api/notifications', notificationRoutes);
 app.use('/api/feedback', feedbackRoutes);
 app.use('/api/report', reportRoute); // This line is correct
 app.use('/api/multi-word-keywords', multiWordKeywordRoutes);
+app.use('/api/stopwords', stopwordsRoute);
 
 
 

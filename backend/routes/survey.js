@@ -7,66 +7,7 @@ const Fuse = require('fuse.js');
 const natural = require('natural');
 const Log = require('../models/log');
 const MultiWordKeyword = require('../models/MultiWordKeyword');
-
-// Initialize the tagger
-const tagger = new natural.BrillPOSTagger();
-
-// Generalized and expanded categories
-const categories = [
-    "Sports", "Technology", "Arts", "Health & Wellness", "Business", "Education",
-    "Travel", "Environment", "Personal Development", "Food & Cooking", "Gaming",
-    "Finance", "Music", "Science", "Literature", "Fashion", "Social Issues",
-    "History", "Mathematics", "Physics", "Biology", "Chemistry", "Engineering",
-    "Computer Science", "Psychology", "Sociology", "Philosophy", "Economics",
-    "Political Science", "Linguistics", "Environmental Science", "Statistics",
-    "Art History", "Music Theory"
-];
-
-// Fuzzy matching configuration
-const fuseOptions = {
-    includeScore: true,
-    threshold: 0.4,
-    keys: ["name"]
-};
-
-// Stop words to filter out
-const stopWords = new Set([
-    "i", "am", "me", "my", "mine", "you", "your", "yours", "he", "him", "his",
-    "she", "her", "hers", "it", "its", "we", "us", "our", "ours", "they",
-    "them", "their", "theirs", "that", "this", "these", "those", "and",
-    "but", "or", "if", "because", "as", "at", "by", "for", "of", "with",
-    "to", "in", "on", "an", "a", "the", "is", "are", "was", "were", "be",
-    "being", "been", "have", "has", "had", "do", "does", "did", "not",
-    "no", "yes", "all", "any", "some", "one", "two", "three", "four",
-    "five", "then", "than", "more", "most", "less", "least", "other",
-    "another", "such", "like", "as", "same", "also", "but", "so", "than",
-    "too", "very", "just", "only", "still", "even", "back", "here",
-    "there", "where", "when", "why", "how", "who", "whom", "which",
-    "what", "say", "says", "said", "tell", "tells", "tell", "make",
-    "makes", "want", "wants", "need", "needs", "know", "knows", "see",
-    "sees", "think", "thinks", "feel", "feels", "work", "works", "use",
-    "uses", "find", "finds", "give", "gives", "take", "takes", "go",
-    "goes", "come", "comes", "look", "looks", "ask", "asks", "put",
-    "puts", "call", "calls", "like", "likes", "love", "loves", "enjoy",
-    "enjoys", "hate", "hates", "try", "tries", "start", "starts", "finish",
-    "finishes", "play", "plays", "walk", "walks", "run", "runs", "swim",
-    "swims", "eat", "eats", "drink", "drinks", "sleep", "sleeps", "interested", "interest"
-]);
-
-// Function to perform fuzzy matching
-function fuzzyMatch(interests) {
-    const fuse = new Fuse(categories.map(cat => ({ name: cat })), fuseOptions);
-    const matches = [];
-
-    interests.forEach(interest => {
-        const result = fuse.search(interest);
-        if (result.length > 0) {
-            matches.push(result[0].item.name); // Get the top match
-        }
-    });
-
-    return [...new Set(matches)]; // Remove duplicates
-}
+const Stopword = require('../models/Stopword');
 
 async function extractInterests(answers) {
     try {
@@ -75,6 +16,10 @@ async function extractInterests(answers) {
 
         // Fetch multi-word keywords from the database
         const multiWordKeywords = await MultiWordKeyword.find().then(keywords => keywords.map(k => k.keyword.toLowerCase()));
+
+        // Fetch stopwords from the database
+        const stopwordsFromDb = await Stopword.find();
+        const stopWordsSet = new Set(stopwordsFromDb.map(stopword => stopword.word.toLowerCase()));
 
         // Check if multi-word keywords are present in combined answers
         for (const keyword of multiWordKeywords) {
@@ -88,7 +33,7 @@ async function extractInterests(answers) {
 
         // Collect specific interests from single words
         singleWords.forEach(word => {
-            if (!stopWords.has(word) && !specificInterests.includes(word)) {
+            if (!stopWordsSet.has(word) && !specificInterests.includes(word)) {
                 specificInterests.push(word);
             }
         });
@@ -119,6 +64,103 @@ async function extractInterests(answers) {
         throw error;
     }
 }
+
+
+// Initialize the tagger
+const tagger = new natural.BrillPOSTagger();
+
+// Generalized and expanded categories
+const categories = [
+    "Sports", "Technology", "Arts", "Health & Wellness", "Business", "Education",
+    "Travel", "Environment", "Personal Development", "Food & Cooking", "Gaming",
+    "Finance", "Music", "Science", "Literature", "Fashion", "Social Issues",
+    "History", "Mathematics", "Physics", "Biology", "Chemistry", "Engineering",
+    "Computer Science", "Psychology", "Sociology", "Philosophy", "Economics",
+    "Political Science", "Linguistics", "Environmental Science", "Statistics",
+    "Art History", "Music Theory"
+];
+
+// Fuzzy matching configuration
+const fuseOptions = {
+    includeScore: true,
+    threshold: 0.4,
+    keys: ["name"]
+};
+
+// Function to perform fuzzy matching
+function fuzzyMatch(interests) {
+    const fuse = new Fuse(categories.map(cat => ({ name: cat })), fuseOptions);
+    const matches = [];
+
+    interests.forEach(interest => {
+        const result = fuse.search(interest);
+        if (result.length > 0) {
+            matches.push(result[0].item.name); // Get the top match
+        }
+    });
+
+    return [...new Set(matches)]; // Remove duplicates
+}
+
+async function extractInterests(answers) {
+    try {
+        const specificInterests = [];
+        const combinedAnswers = answers.join(' ').toLowerCase();
+
+        // Fetch multi-word keywords from the database
+        const multiWordKeywords = await MultiWordKeyword.find().then(keywords => keywords.map(k => k.keyword.toLowerCase()));
+
+        // Fetch stopwords from the database
+        const stopwordsFromDb = await Stopword.find();
+        const stopWordsSet = new Set(stopwordsFromDb.map(stopword => stopword.word.toLowerCase()));
+
+        // Regex to remove non-alphabetic characters and normalize words
+        const normalizeWord = word => word.replace(/[^a-z]/g, '');
+
+        // Check if multi-word keywords are present in combined answers
+        for (const keyword of multiWordKeywords) {
+            if (combinedAnswers.includes(keyword)) {
+                specificInterests.push(keyword); // Add multi-word keywords directly
+            }
+        }
+
+        // Split the combined answers into words, normalize them, and exclude multi-word keywords
+        const singleWords = combinedAnswers.split(/[\s,]+/).map(normalizeWord).filter(Boolean);
+
+        // Collect specific interests from single words
+        singleWords.forEach(word => {
+            if (!stopWordsSet.has(word) && !specificInterests.includes(word)) {
+                specificInterests.push(word);
+            }
+        });
+
+        // Deduplicate and limit to top 3 specific interests
+        const uniqueInterests = [...new Set(specificInterests)].slice(0, 3);
+
+        const matchedCategories = fuzzyMatch(uniqueInterests);
+
+        const classificationResult = await hf.zeroShotClassification({
+            model: 'facebook/bart-large-mnli',
+            inputs: combinedAnswers,
+            parameters: { candidate_labels: categories.slice(0, 10) }
+        });
+
+        if (classificationResult && classificationResult[0]?.labels) {
+            const topCategories = classificationResult[0].labels.slice(0, 3);
+            return {
+                specificInterests: uniqueInterests,
+                topCategories,
+                matchedCategories
+            };
+        } else {
+            throw new Error("Classification result is undefined or does not contain labels.");
+        }
+    } catch (error) {
+        console.error("Error in extractInterests:", error);
+        throw error;
+    }
+}
+
 
 // Express.js setup
 const router = express.Router();

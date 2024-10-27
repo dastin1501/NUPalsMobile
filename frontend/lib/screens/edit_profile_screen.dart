@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/screens/changepassword_screen.dart';
-import 'package:frontend/screens/forgotpassword_screen.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:frontend/utils/constants.dart'; // Ensure this file has your theme colors
@@ -254,7 +253,24 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     child: Text('Update Profile', style: TextStyle(color: const Color.fromARGB(255, 255, 255, 255))),
                   ),
                 ),
-
+                SizedBox(height: 16),
+                Center(
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: nuBlue,
+                      padding: EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                    ),
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => ChangePasswordScreen(userId: widget.userId),
+                        ),
+                      );
+                    },
+                    child: Text('Change Password', style: TextStyle(color: const Color.fromARGB(255, 255, 255, 255))),
+                  ),
+                ),
                 // Survey button
                 SizedBox(height: 16),
                 Center(
