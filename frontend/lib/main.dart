@@ -23,19 +23,19 @@
   import 'package:http/http.dart' as http;
   import 'dart:convert';
   import '../utils/api_constant.dart'; // Import the ApiConstants
-
+ 
   void main() async {
     WidgetsFlutterBinding.ensureInitialized(); // Ensure binding is initialized
     final userId = await SharedPreferencesService.getUserId(); // Load user ID
-
+ 
     runApp(MyApp(userId: userId));
   }
-
+ 
   class MyApp extends StatelessWidget {
     final String? userId;
-
+ 
     MyApp({this.userId});
-
+ 
     @override
     Widget build(BuildContext context) {
       return ScreenUtilInit(
@@ -83,23 +83,23 @@
       );
     }
   }
-
-
+ 
+ 
   class MainScreen extends StatefulWidget {
     final String userId;
-
+ 
     MainScreen({required this.userId});
-
+ 
     @override
     _MainScreenState createState() => _MainScreenState();
   }
-
+ 
   class _MainScreenState extends State<MainScreen> {
     int _currentIndex = 0;
     late String _userId;
-
+ 
     final List<Widget> _children = [];
-
+ 
     @override
     void initState() {
       super.initState();
@@ -112,34 +112,34 @@
         GroupInboxScreen(userId: _userId), // Use the new GroupInboxScreen
       ]);
     }
-
+ 
     void onTabTapped(int index) {
       setState(() {
         _currentIndex = index;
       });
     }
-
+ 
   Future<void> logout() async {
     final userId = await SharedPreferencesService.getUserId(); // Retrieve the user ID
-
+ 
     if (userId == null) {
       // User is already logged out
       Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
       return;
     }
-
+ 
     try {
       final response = await http.post(
         Uri.parse('${ApiConstants.baseUrl}/api/auth/logout'), // Replace with your actual logout URL
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'userId': userId}), // Send userId in the body
       );
-
+ 
       if (response.statusCode == 200) {
         // Handle successful logout
         await SharedPreferencesService.removeUserId(); // Remove user ID from SharedPreferences
         print('User ID after logout: ${await SharedPreferencesService.getUserId()}'); // Should print null
-
+ 
         // Navigate to the login screen
         Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
       } else {
@@ -157,37 +157,49 @@
       );
     }
   }
-
+ 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: nuBlue,
-        leading: Builder(
-          builder: (BuildContext context) {
-            return IconButton(
-              icon: Icon(Icons.menu),
-              onPressed: () {
-                Scaffold.of(context).openDrawer();
-              },
-            );
-          },
-        ),
-        title: Row(
-          children: [
-            Image.asset(
-              'assets/logo.png', // Replace with the path to your logo
-              height: 40, // Adjust the height as needed
-            ),
-            SizedBox(width: 10), // Add some space between the logo and the title
-          Text(
-              'NUPals',
-              style: TextStyle(color: Colors.white), // Set text color to white
-            ),
-          ],
-        ),
+     appBar: AppBar(
+  backgroundColor: nuBlue,
+  leading: Builder(
+    builder: (BuildContext context) {
+      return IconButton(
+        icon: Icon(Icons.menu),
+        onPressed: () {
+          Scaffold.of(context).openDrawer();
+        },
+      );
+    },
+  ),
+  title: Row(
+    children: [
+      Image.asset(
+        'assets/logo.png', // Replace with the path to your logo
+        height: 40, // Adjust the height as needed
       ),
-
+      SizedBox(width: 10), // Add some space between the logo and the title
+      Text(
+        'NUPals',
+        style: TextStyle(color: Colors.white), // Set text color to white
+      ),
+    ],
+  ),
+  actions: [
+    IconButton(
+      icon: Icon(Icons.notifications), // Notification icon
+      onPressed: () {
+        Navigator.pushNamed(context, '/notifications'); // Navigate to the notifications screen
+      },
+      color: Colors.white, // Set icon color to white
+    ),
+    SizedBox(width: 16), // Optional: Add space between the icon and the edge
+  ],
+),
+ 
+ 
+ 
         drawer: Drawer(
           child: ListView(
             padding: EdgeInsets.zero,
@@ -282,11 +294,12 @@
       ),
     ],
   ),
-
+ 
       );
     }
   }
-
+ 
+ 
   // Function to register user
   Future<void> registerUser(BuildContext context, String email, String username, String password, String age, String college, String bio) async {
     final response = await http.post(
@@ -301,7 +314,7 @@
         'bio': bio,
       }),
     );
-
+ 
     if (response.statusCode == 201) {
       // Registration successful, save user ID
       final data = json.decode(response.body);

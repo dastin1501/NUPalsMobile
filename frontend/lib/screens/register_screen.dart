@@ -246,9 +246,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 ),
               ),
               SizedBox(height: 10),
-
-              // College dropdown
-              DropdownButtonFormField<String>(
+            // College dropdown
+            Container(
+              width: double.infinity, // Ensures it takes the full width of the parent
+              child: DropdownButtonFormField<String>(
+                isExpanded: true, // Ensures the dropdown uses available width
                 value: _selectedCollege,
                 hint: Text('Select College', style: TextStyle(color: nuBlue)),
                 items: collegeDepartments.map((String college) {
@@ -271,6 +273,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ),
                 ),
               ),
+            ),
               SizedBox(height: 10),
 
               // Password field

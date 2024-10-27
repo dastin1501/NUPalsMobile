@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:frontend/screens/report_screen.dart';
 import 'package:frontend/utils/constants.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -135,13 +136,16 @@ class _MessagingScreenState extends State<MessagingScreen> {
     return DateFormat('yyyy-MM-dd – hh:mm a').format(dateTime);
   }
 
-  void _reportUser() {
-    // Navigate to the ReportScreen (you can customize this function)
-    Navigator.pushNamed(context, '/report', arguments: {
-      'userId': widget.otherUserId,
-      'reportedBy': widget.userId,
-    });
-  }
+ void _reportUser() {
+  // Navigate to the ReportScreen with the otherUserId as the reported user
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (context) => ReportScreen(userId: widget.otherUserId),
+    ),
+  );
+}
+
 
   @override
 Widget build(BuildContext context) {

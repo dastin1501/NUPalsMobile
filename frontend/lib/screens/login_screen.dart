@@ -17,7 +17,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Future<void> _login() async {
     // Append the fixed domain to the email
-    final email = "${_emailController.text}@test.com";
+    final email = "${_emailController.text}@students.national-u.edu.ph";
 
     setState(() {
       _isLoading = true; // Set loading to true when starting login
@@ -122,7 +122,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12),
                               ),
-                              suffixText: '@test.com', // Show the fixed domain
+                              suffixText: '@students.national-u.edu.ph', // Show the fixed domain
                             ),
                           ),
                           SizedBox(height: 16),

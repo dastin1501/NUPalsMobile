@@ -17,6 +17,7 @@ const userSchema = new Schema({
   following: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   followers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   notifications: [{ type: String }], // New field for notifications
+   lastSurveyDate: { type: Date, default: null }, 
 }, { timestamps: true });
 
 const User = mongoose.models.User || mongoose.model('User', userSchema);

@@ -5,16 +5,16 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../utils/api_constant.dart'; // Import the ApiConstants
 import '../utils/constants.dart'; // Import your constants for colors
-
+ 
 class SearchScreen extends StatefulWidget {
   final String userId;
-
+ 
   SearchScreen({required this.userId});
-
+ 
   @override
   _SearchScreenState createState() => _SearchScreenState();
 }
-
+ 
 class _SearchScreenState extends State<SearchScreen> {
   final TextEditingController _searchController = TextEditingController();
   List<Map<String, dynamic>> _matches = [];
@@ -22,20 +22,20 @@ class _SearchScreenState extends State<SearchScreen> {
   List<String> _userInterests = [];
   List<String> _following = [];
   bool _isLoading = true;
-
+ 
   @override
   void initState() {
     super.initState();
     _fetchUserInterests();
     _fetchAllUsers();
   }
-
+ 
   Future<void> _fetchUserInterests() async {
   try {
     final response = await http.get(Uri.parse('${ApiConstants.baseUrl}/api/users/profile/${widget.userId}'));
     if (response.statusCode == 200) {
       final user = jsonDecode(response.body);
-
+ 
       setState(() {
         _userInterests = List<String>.from(user['customInterests']);
         // Map `following` IDs to strings explicitly
@@ -53,8 +53,8 @@ class _SearchScreenState extends State<SearchScreen> {
     );
   }
 }
-
-
+ 
+ 
   Future<void> _fetchAllUsers() async {
     try {
       final response = await http.get(Uri.parse('${ApiConstants.baseUrl}/api/users'));
@@ -79,7 +79,7 @@ class _SearchScreenState extends State<SearchScreen> {
       );
     }
   }
-
+ 
   List<Map<String, dynamic>> _getTopMatches() {
     return _allUsers.where((user) {
       return user['customInterests'].any((interest) => _userInterests.contains(interest));
@@ -90,16 +90,16 @@ class _SearchScreenState extends State<SearchScreen> {
         return bMatches.compareTo(aMatches);
       });
   }
-
+ 
   void _shuffleAndRefresh() {
     setState(() {
       _matches.shuffle(Random());
       _matches = _matches.take(3).toList(); // Limit to 3 matches
     });
   }
-
-  
-
+ 
+ 
+ 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -166,7 +166,7 @@ leading: CircleAvatar(
       ? MemoryImage(base64Decode(user['profilePicture']!.split(',').last)) // Remove the prefix and decode
       : AssetImage('assets/images/profile_pic.jpg') as ImageProvider,
 ),
-
+ 
                         title: Text(
                           user['username'],
                           style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
@@ -213,14 +213,14 @@ leading: CircleAvatar(
       ),
     );
   }
-
+ 
   Future<void> followUser(String userIdToFollow) async {
     final response = await http.post(
       Uri.parse('${ApiConstants.baseUrl}/api/profile/${widget.userId}/follow'),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({'followId': userIdToFollow}),
     );
-
+ 
    if (response.statusCode == 200) {
     setState(() {
       // Update the following list immediately
@@ -228,7 +228,7 @@ leading: CircleAvatar(
       // Optional: Refresh the user list if necessary
       // _fetchAllUsers(); // Comment this out if you want to avoid resetting
     });
-
+ 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text('User followed')),
     );
@@ -237,6 +237,7 @@ leading: CircleAvatar(
       SnackBar(content: Text('Failed to follow user: ${response.body}')),
     );
   }
-
+ 
   }
 }
+ 

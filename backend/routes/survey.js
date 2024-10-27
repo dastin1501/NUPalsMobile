@@ -6,6 +6,7 @@ const SurveyResponse = require('../models/surveyResponse');
 const Fuse = require('fuse.js');
 const natural = require('natural');
 const Log = require('../models/log');
+const MultiWordKeyword = require('../models/MultiWordKeyword');
 
 // Initialize the tagger
 const tagger = new natural.BrillPOSTagger();
@@ -30,7 +31,7 @@ const fuseOptions = {
 
 // Stop words to filter out
 const stopWords = new Set([
-   "i", "am", "me", "my", "mine", "you", "your", "yours", "he", "him", "his",
+    "i", "am", "me", "my", "mine", "you", "your", "yours", "he", "him", "his",
     "she", "her", "hers", "it", "its", "we", "us", "our", "ours", "they",
     "them", "their", "theirs", "that", "this", "these", "those", "and",
     "but", "or", "if", "because", "as", "at", "by", "for", "of", "with",
@@ -49,7 +50,7 @@ const stopWords = new Set([
     "puts", "call", "calls", "like", "likes", "love", "loves", "enjoy",
     "enjoys", "hate", "hates", "try", "tries", "start", "starts", "finish",
     "finishes", "play", "plays", "walk", "walks", "run", "runs", "swim",
-    "swims", "eat", "eats", "drink", "drinks", "sleep", "sleeps", "interested", "interest" 
+    "swims", "eat", "eats", "drink", "drinks", "sleep", "sleeps", "interested", "interest"
 ]);
 
 // Function to perform fuzzy matching
@@ -67,21 +68,35 @@ function fuzzyMatch(interests) {
     return [...new Set(matches)]; // Remove duplicates
 }
 
-// Function to extract interests using keyword extraction
 async function extractInterests(answers) {
     try {
         const specificInterests = [];
-        const combinedAnswers = answers.join(' ');
+        const combinedAnswers = answers.join(' ').toLowerCase();
 
-        const tokenizer = new natural.WordTokenizer();
-        const words = tokenizer.tokenize(combinedAnswers.toLowerCase());
+        // Fetch multi-word keywords from the database
+        const multiWordKeywords = await MultiWordKeyword.find().then(keywords => keywords.map(k => k.keyword.toLowerCase()));
 
-        const filteredWords = words.filter(word => !stopWords.has(word));
+        // Check if multi-word keywords are present in combined answers
+        for (const keyword of multiWordKeywords) {
+            if (combinedAnswers.includes(keyword)) {
+                specificInterests.push(keyword); // Add multi-word keywords directly
+            }
+        }
 
-        const uniqueInterests = [...new Set(filteredWords)].slice(0, 3);
-        specificInterests.push(...uniqueInterests);
+        // Split the combined answers into words, excluding multi-word keywords
+        const singleWords = combinedAnswers.split(/[\s,]+/);
 
-        const matchedCategories = fuzzyMatch(specificInterests);
+        // Collect specific interests from single words
+        singleWords.forEach(word => {
+            if (!stopWords.has(word) && !specificInterests.includes(word)) {
+                specificInterests.push(word);
+            }
+        });
+
+        // Deduplicate and limit to top 3 specific interests
+        const uniqueInterests = [...new Set(specificInterests)].slice(0, 3);
+
+        const matchedCategories = fuzzyMatch(uniqueInterests);
 
         const classificationResult = await hf.zeroShotClassification({
             model: 'facebook/bart-large-mnli',
@@ -108,8 +123,6 @@ async function extractInterests(answers) {
 // Express.js setup
 const router = express.Router();
 
-// Route to analyze survey responses
-// Route to analyze survey responses
 router.post('/analyze', async (req, res) => {
     const { userId, surveyResponse } = req.body;
 
@@ -118,6 +131,20 @@ router.post('/analyze', async (req, res) => {
     }
 
     try {
+        // Check if the user already has a survey response
+        const existingResponse = await SurveyResponse.findOne({ userId });
+
+        if (existingResponse) {
+            const now = new Date();
+            const lastEdited = existingResponse.lastEdited || new Date(0); // Default to epoch if not set
+            const timeDiff = now - lastEdited;
+
+            // Check if less than 7 days (in milliseconds)
+            if (timeDiff < 7 * 24 * 60 * 60 * 1000) {
+                return res.status(403).json({ error: 'You can only edit your survey once every 7 days.' });
+            }
+        }
+
         const responses = surveyResponse.questions.map(q => q.answer);
         const analysis = await extractInterests(responses);
 
@@ -127,45 +154,44 @@ router.post('/analyze', async (req, res) => {
             surveyResponse,
             analysisResult: {
                 specificInterests: analysis.specificInterests,
-                topCategories: analysis.topCategories,
-                tfidfTerms: analysis.tfidfTerms // Assuming you have TF-IDF terms to save
-            }
+                topCategories: analysis.topCategories
+            },
+            lastEdited: new Date() // Set the last edited timestamp
         });
 
         await newSurveyResponse.save();
 
-     // Update the user's custom interests
-     await User.findByIdAndUpdate(userId, {
-        $set: {
-            customInterests: analysis.specificInterests,
-            categorizedInterests: analysis.topCategories
-        } // Replace interests
-    });
+        // Update the user's custom interests and lastSurveyDate
+        await User.findByIdAndUpdate(userId, {
+            $set: {
+                customInterests: analysis.specificInterests,
+                categorizedInterests: analysis.topCategories,
+                lastSurveyDate: new Date() // Update last survey date
+            }
+        });
 
-     // Fetch the user's email based on userId
-const user = await User.findById(userId);
-if (!user) {
-  return res.status(404).json({ error: 'User not found' });
-}
+        // Fetch the user's email based on userId
+        const user = await User.findById(userId);
+        if (!user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
 
-// Log the user interest update action with the fetched email
-await Log.create({
-  level: 'info',
-  message: 'User updated interests based on survey',
-  studentId: userId,
-  studentName: user.email, // Log the user's email as studentName
-  });
+        // Log the user interest update action with the fetched email
+        await Log.create({
+            level: 'info',
+            message: 'User updated interests based on survey',
+            studentId: userId,
+            studentName: user.email,
+        });
 
         return res.status(200).json({
             interests: analysis.specificInterests,
-            topCategories: analysis.topCategories,
-            tfidfTerms: analysis.tfidfTerms
+            topCategories: analysis.topCategories
         });
     } catch (error) {
         console.error("Error analyzing survey response:", error);
         return res.status(500).json({ error: 'Internal server error' });
     }
 });
-
 
 module.exports = router;
