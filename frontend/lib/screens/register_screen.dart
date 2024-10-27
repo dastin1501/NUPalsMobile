@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/utils/api_constant.dart';
 import 'package:frontend/utils/constants.dart';
-import 'dart:typed_data';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:intl/intl.dart';
