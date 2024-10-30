@@ -190,7 +190,12 @@
     IconButton(
       icon: Icon(Icons.notifications), // Notification icon
       onPressed: () {
-        Navigator.pushNamed(context, '/notifications'); // Navigate to the notifications screen
+         Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => NotificationsScreen(userId: _userId), // Navigate to Notifications Screen
+                    ),
+                  ); // Navigate to the notifications screen
       },
       color: Colors.white, // Set icon color to white
     ),

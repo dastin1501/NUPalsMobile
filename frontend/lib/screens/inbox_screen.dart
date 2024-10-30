@@ -115,10 +115,15 @@ class _InboxScreenState extends State<InboxScreen> {
                           child: ListTile(
                             contentPadding: const EdgeInsets.all(16.0),
                           leading: CircleAvatar(
-                              backgroundImage: user['profilePicture'] != null
-                                  ? NetworkImage(user['profilePicture'])
-                                  : AssetImage('assets/images/profile_pic.jpg') as ImageProvider,
-                            ),
+  backgroundImage: user['profilePicture'] != null
+      ? user['profilePicture'].startsWith('data:image') // Check if it's base64
+          ? MemoryImage(base64Decode(
+              user['profilePicture'].split(',').last, // Remove base64 prefix
+            ))
+          : NetworkImage(user['profilePicture']) as ImageProvider
+      : AssetImage('assets/images/profile_pic.jpg') as ImageProvider,
+),
+
                             title: Text(
                               user['username'] ?? 'Unknown User', // Default name if username is null
                               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
