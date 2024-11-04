@@ -1,6 +1,6 @@
 const express = require('express');
 const User = require('../models/User');
-const { GroupChat, GroupChatMessage } = require('../models/groupChat');
+const { GroupChat, GroupChatMessage } = require('../models/GroupChat');
 const router = express.Router();
 
 // 1. Fetch all group chats for a user
@@ -9,9 +9,9 @@ router.get('/chat/:userId', async (req, res) => {
       const userId = req.params.userId;
   
       // Fetch group chats based on user's categorized interests
-      const user = await User.findById(userId).select('categorizedInterests');
+      const user = await User.findById(userId).select('customInterests');
       const groupChats = await GroupChat.find({
-        title: { $in: user.categorizedInterests }, // Match group chat titles with user's interests
+        title: { $in: user.customInterests }, // Match group chat titles with user's interests
       });
   
       return res.status(200).json(groupChats);
@@ -72,4 +72,18 @@ router.get('/chat/:userId', async (req, res) => {
     }
   });
   
+
+  // Route to count users with a specific interest
+router.get('/countByInterest/:interest', async (req, res) => {
+  const { interest } = req.params;
+  try {
+    // Count users with the specified interest in their customInterests field
+    const count = await User.countDocuments({ customInterests: interest });
+    res.status(200).json({ interest, count });
+  } catch (error) {
+    res.status(500).json({ message: 'Error counting users', error: error.message });
+  }
+});
+
+
 module.exports = router;

@@ -100,7 +100,7 @@ class _SurveyScreenState extends State<SurveyScreen> {
     if (response.statusCode == 200) {
       final responseData = json.decode(response.body);
       setState(() {
-        _result = 'Your Interests: ${responseData['interests']}\nTop Categories: ${responseData['topCategories']}';
+        _result = 'Your Interests: ${responseData['interests']}}';
       });
       _showResultModal();
     } else {

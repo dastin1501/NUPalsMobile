@@ -1,11 +1,22 @@
-2024/10/28-02:24:10.798 6a0c Reusing MANIFEST C:\Users\Dastin\AppData\Local\Temp\flutter_tools.36a5cfd2\flutter_tools_chrome_device.ca42aaa9\Default\Site Characteristics Database/MANIFEST-000001
-2024/10/28-02:24:10.800 6a0c Recovering log #19
-2024/10/28-02:24:10.803 6a0c Reusing old log C:\Users\Dastin\AppData\Local\Temp\flutter_tools.36a5cfd2\flutter_tools_chrome_device.ca42aaa9\Default\Site Characteristics Database/000019.log 
-2024/10/28-02:24:10.804 6a0c Delete type=0 #3
-2024/10/28-02:24:10.804 6a0c Delete type=2 #4
-2024/10/28-02:24:10.805 6a0c Delete type=2 #6
-2024/10/28-02:24:10.805 6a0c Delete type=0 #6
-2024/10/28-02:24:10.805 6a0c Delete type=0 #10
-2024/10/28-02:24:10.805 6a0c Delete type=2 #11
-2024/10/28-02:24:10.805 6a0c Delete type=2 #13
-2024/10/28-02:24:10.805 6a0c Delete type=2 #14
+2024/11/04-22:19:38.999 6034 Reusing MANIFEST C:\Users\Rimiru\AppData\Local\Temp\flutter_tools.d41d67a7\flutter_tools_chrome_device.7fffcec3\Default\Site Characteristics Database/MANIFEST-000001
+2024/11/04-22:19:39.000 6034 Recovering log #3
+2024/11/04-22:19:39.000 6034 Level-0 table #22: started
+2024/11/04-22:19:39.011 6034 Level-0 table #22: 259 bytes OK
+2024/11/04-22:19:39.011 6034 Recovering log #6
+2024/11/04-22:19:39.012 6034 Level-0 table #23: started
+2024/11/04-22:19:39.017 6034 Level-0 table #23: 565 bytes OK
+2024/11/04-22:19:39.017 6034 Recovering log #10
+2024/11/04-22:19:39.017 6034 Level-0 table #24: started
+2024/11/04-22:19:39.022 6034 Level-0 table #24: 609 bytes OK
+2024/11/04-22:19:39.022 6034 Recovering log #19
+2024/11/04-22:19:39.022 6034 Reusing old log C:\Users\Rimiru\AppData\Local\Temp\flutter_tools.d41d67a7\flutter_tools_chrome_device.7fffcec3\Default\Site Characteristics Database/000019.log 
+2024/11/04-22:19:39.027 6034 Delete type=2 #3
+2024/11/04-22:19:39.027 6034 Delete type=0 #3
+2024/11/04-22:19:39.027 6034 Delete type=2 #4
+2024/11/04-22:19:39.027 6034 Delete type=2 #6
+2024/11/04-22:19:39.028 6034 Delete type=0 #6
+2024/11/04-22:19:39.028 6034 Delete type=2 #7
+2024/11/04-22:19:39.028 6034 Delete type=0 #10
+2024/11/04-22:19:39.028 6034 Delete type=2 #11
+2024/11/04-22:19:39.028 6034 Delete type=2 #13
+2024/11/04-22:19:39.028 6034 Delete type=2 #14

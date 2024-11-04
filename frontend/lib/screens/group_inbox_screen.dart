@@ -16,7 +16,7 @@ class GroupInboxScreen extends StatefulWidget {
 
 class _GroupInboxScreenState extends State<GroupInboxScreen> {
   List<Map<String, dynamic>> _groupChats = [];
-  List<String> _categorizedInterests = []; // To store user's interests
+  List<String> _customInterests = [];
   String? _firstName; // To store user's first name
   String? _lastName; // To store user's last name
 
@@ -28,7 +28,7 @@ class _GroupInboxScreenState extends State<GroupInboxScreen> {
 
   Future<void> _fetchGroupChats() async {
     try {
-      // Fetch the user's profile data, including categorized interests and name
+      // Fetch the user's profile data, including custom interests and name
       final userResponse = await http.get(
         Uri.parse('${ApiConstants.baseUrl}/api/profile/${widget.userId}'), // Update to your user API endpoint
       );
@@ -36,7 +36,7 @@ class _GroupInboxScreenState extends State<GroupInboxScreen> {
       if (userResponse.statusCode == 200) {
         final userData = jsonDecode(userResponse.body);
         setState(() {
-          _categorizedInterests = List<String>.from(userData['categorizedInterests']);
+          _customInterests = List<String>.from(userData['customInterests']); // Use custom interests
           _firstName = userData['firstName']; // Store first name
           _lastName = userData['lastName'];   // Store last name
         });
@@ -45,8 +45,8 @@ class _GroupInboxScreenState extends State<GroupInboxScreen> {
         return; // Exit if user data fetch fails
       }
 
-      // Fetch group chats that match categorized interests
-      if (_categorizedInterests.isNotEmpty) {
+      // Fetch group chats that match custom interests
+      if (_customInterests.isNotEmpty) {
         final groupResponse = await http.get(
           Uri.parse('${ApiConstants.baseUrl}/api/group/chat/${widget.userId}'), // Your updated API endpoint to get group chats
         );
@@ -54,9 +54,9 @@ class _GroupInboxScreenState extends State<GroupInboxScreen> {
         if (groupResponse.statusCode == 200) {
           final List<dynamic> allGroupChats = jsonDecode(groupResponse.body);
           setState(() {
-            // Filter group chats based on categorized interests
+            // Filter group chats based on custom interests
             _groupChats = allGroupChats
-                .where((chat) => _categorizedInterests.contains(chat['title']))
+                .where((chat) => _customInterests.contains(chat['title']))
                 .cast<Map<String, dynamic>>()
                 .toList();
           });
@@ -69,28 +69,49 @@ class _GroupInboxScreenState extends State<GroupInboxScreen> {
     }
   }
 
+  Future<void> _navigateToGroupMessages(String groupChatId, String interest) async {
+    try {
+      // Fetch the count of users with the specified interest
+      final response = await http.get(
+        Uri.parse('${ApiConstants.baseUrl}/api/group/countByInterest/$interest'),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        final int count = data['count'];
+
+        if (count >= 3) {
+          // Only navigate if there are 3 or more members with the same interest
+          if (_firstName != null && _lastName != null) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => GroupMessageScreen(
+                  userId: widget.userId,
+                  groupChatId: groupChatId,
+                  firstName: _firstName!,
+                  lastName: _lastName!,
+                ),
+              ),
+            );
+          } else {
+            _handleError('User data not fully loaded');
+          }
+        } else {
+          _handleError('Not enough members to join this group');
+        }
+      } else {
+        _handleError('Error fetching member count');
+      }
+    } catch (error) {
+      _handleError('Error fetching member count: ${error.toString()}');
+    }
+  }
+
   void _handleError(String message) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(message)),
     );
-  }
-
-  void _navigateToGroupMessages(String groupChatId) {
-    if (_firstName != null && _lastName != null) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => GroupMessageScreen(
-            userId: widget.userId,
-            groupChatId: groupChatId, // Pass the group chat ID
-            firstName: _firstName!,   // Pass the first name
-            lastName: _lastName!,     // Pass the last name
-          ),
-        ),
-      );
-    } else {
-      _handleError('User data not fully loaded');
-    }
   }
 
   @override
@@ -102,7 +123,7 @@ class _GroupInboxScreenState extends State<GroupInboxScreen> {
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: _groupChats.isEmpty // Show a loading indicator or message if there are no group chats
+        child: _groupChats.isEmpty
             ? Center(child: CircularProgressIndicator())
             : ListView.builder(
                 itemCount: _groupChats.length,
@@ -114,10 +135,10 @@ class _GroupInboxScreenState extends State<GroupInboxScreen> {
                     child: ListTile(
                       contentPadding: const EdgeInsets.all(16.0),
                       title: Text(
-                        groupChat['title'], // Use the title based on categorized interests
+                        groupChat['title'],
                         style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
                       ),
-                      onTap: () => _navigateToGroupMessages(groupChat['_id']), // Navigate with group chat ID
+                      onTap: () => _navigateToGroupMessages(groupChat['_id'], groupChat['title']), // Pass group ID and title as interest
                     ),
                   );
                 },
