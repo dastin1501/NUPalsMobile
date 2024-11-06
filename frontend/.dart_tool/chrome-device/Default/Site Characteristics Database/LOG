@@ -1,37 +1,17 @@
-2024/11/06-02:46:52.975 ab0 Reusing MANIFEST C:\Users\Dastin\AppData\Local\Temp\flutter_tools.d8112bc7\flutter_tools_chrome_device.686690a2\Default\Site Characteristics Database/MANIFEST-000001
-2024/11/06-02:46:52.976 ab0 Recovering log #3
-2024/11/06-02:46:52.976 ab0 Level-0 table #33: started
-2024/11/06-02:46:52.981 ab0 Level-0 table #33: 259 bytes OK
-2024/11/06-02:46:52.981 ab0 Recovering log #6
-2024/11/06-02:46:52.981 ab0 Level-0 table #34: started
-2024/11/06-02:46:52.986 ab0 Level-0 table #34: 180 bytes OK
-2024/11/06-02:46:52.986 ab0 Recovering log #10
-2024/11/06-02:46:52.986 ab0 Level-0 table #35: started
-2024/11/06-02:46:52.990 ab0 Level-0 table #35: 372 bytes OK
-2024/11/06-02:46:52.990 ab0 Recovering log #19
-2024/11/06-02:46:52.990 ab0 Level-0 table #36: started
-2024/11/06-02:46:52.994 ab0 Level-0 table #36: 363 bytes OK
-2024/11/06-02:46:52.994 ab0 Recovering log #30
-2024/11/06-02:46:52.995 ab0 Reusing old log C:\Users\Dastin\AppData\Local\Temp\flutter_tools.d8112bc7\flutter_tools_chrome_device.686690a2\Default\Site Characteristics Database/000030.log 
-2024/11/06-02:46:52.996 ab0 Delete type=0 #3
-2024/11/06-02:46:52.996 ab0 Delete type=2 #4
-2024/11/06-02:46:52.996 ab0 Delete type=2 #6
-2024/11/06-02:46:52.996 ab0 Delete type=0 #6
-2024/11/06-02:46:52.996 ab0 Delete type=0 #10
-2024/11/06-02:46:52.996 ab0 Delete type=2 #11
-2024/11/06-02:46:52.996 ab0 Delete type=2 #13
-2024/11/06-02:46:52.997 ab0 Delete type=2 #14
-2024/11/06-02:46:52.997 ab0 Delete type=0 #19
-2024/11/06-02:46:52.997 ab0 Delete type=2 #20
-2024/11/06-02:46:52.997 ab0 Delete type=2 #22
-2024/11/06-02:46:52.997 ab0 Delete type=2 #23
-2024/11/06-02:46:52.997 ab0 Delete type=2 #24
-2024/11/06-02:46:53.003 576c Compacting 4@0 + 1@1 files
-2024/11/06-02:46:53.006 576c Generated table #37@0: 3 keys, 262 bytes
-2024/11/06-02:46:53.006 576c Compacted 4@0 + 1@1 files => 262 bytes
-2024/11/06-02:46:53.007 576c compacted to: files[ 0 1 0 0 0 0 0 ]
-2024/11/06-02:46:53.008 576c Delete type=2 #31
-2024/11/06-02:46:53.008 576c Delete type=2 #33
-2024/11/06-02:46:53.008 576c Delete type=2 #34
-2024/11/06-02:46:53.008 576c Delete type=2 #35
-2024/11/06-02:46:53.008 576c Delete type=2 #36
+2024/11/06-14:28:34.808 7288 Reusing MANIFEST C:\Users\Dastin\AppData\Local\Temp\flutter_tools.8d7d2335\flutter_tools_chrome_device.a6ac83c3\Default\Site Characteristics Database/MANIFEST-000001
+2024/11/06-14:28:34.809 7288 Recovering log #30
+2024/11/06-14:28:34.810 7288 Reusing old log C:\Users\Dastin\AppData\Local\Temp\flutter_tools.8d7d2335\flutter_tools_chrome_device.a6ac83c3\Default\Site Characteristics Database/000030.log 
+2024/11/06-14:28:34.810 7288 Delete type=0 #3
+2024/11/06-14:28:34.810 7288 Delete type=2 #4
+2024/11/06-14:28:34.811 7288 Delete type=2 #6
+2024/11/06-14:28:34.811 7288 Delete type=0 #6
+2024/11/06-14:28:34.811 7288 Delete type=0 #10
+2024/11/06-14:28:34.811 7288 Delete type=2 #11
+2024/11/06-14:28:34.811 7288 Delete type=2 #13
+2024/11/06-14:28:34.816 7288 Delete type=2 #14
+2024/11/06-14:28:34.816 7288 Delete type=0 #19
+2024/11/06-14:28:34.816 7288 Delete type=2 #20
+2024/11/06-14:28:34.816 7288 Delete type=2 #22
+2024/11/06-14:28:34.816 7288 Delete type=2 #23
+2024/11/06-14:28:34.816 7288 Delete type=2 #24
+2024/11/06-14:28:34.816 7288 Delete type=2 #31
