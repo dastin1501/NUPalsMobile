@@ -1,37 +1,25 @@
-2024/11/06-02:46:52.975 ab0 Reusing MANIFEST C:\Users\Dastin\AppData\Local\Temp\flutter_tools.d8112bc7\flutter_tools_chrome_device.686690a2\Default\Site Characteristics Database/MANIFEST-000001
-2024/11/06-02:46:52.976 ab0 Recovering log #3
-2024/11/06-02:46:52.976 ab0 Level-0 table #33: started
-2024/11/06-02:46:52.981 ab0 Level-0 table #33: 259 bytes OK
-2024/11/06-02:46:52.981 ab0 Recovering log #6
-2024/11/06-02:46:52.981 ab0 Level-0 table #34: started
-2024/11/06-02:46:52.986 ab0 Level-0 table #34: 180 bytes OK
-2024/11/06-02:46:52.986 ab0 Recovering log #10
-2024/11/06-02:46:52.986 ab0 Level-0 table #35: started
-2024/11/06-02:46:52.990 ab0 Level-0 table #35: 372 bytes OK
-2024/11/06-02:46:52.990 ab0 Recovering log #19
-2024/11/06-02:46:52.990 ab0 Level-0 table #36: started
-2024/11/06-02:46:52.994 ab0 Level-0 table #36: 363 bytes OK
-2024/11/06-02:46:52.994 ab0 Recovering log #30
-2024/11/06-02:46:52.995 ab0 Reusing old log C:\Users\Dastin\AppData\Local\Temp\flutter_tools.d8112bc7\flutter_tools_chrome_device.686690a2\Default\Site Characteristics Database/000030.log 
-2024/11/06-02:46:52.996 ab0 Delete type=0 #3
-2024/11/06-02:46:52.996 ab0 Delete type=2 #4
-2024/11/06-02:46:52.996 ab0 Delete type=2 #6
-2024/11/06-02:46:52.996 ab0 Delete type=0 #6
-2024/11/06-02:46:52.996 ab0 Delete type=0 #10
-2024/11/06-02:46:52.996 ab0 Delete type=2 #11
-2024/11/06-02:46:52.996 ab0 Delete type=2 #13
-2024/11/06-02:46:52.997 ab0 Delete type=2 #14
-2024/11/06-02:46:52.997 ab0 Delete type=0 #19
-2024/11/06-02:46:52.997 ab0 Delete type=2 #20
-2024/11/06-02:46:52.997 ab0 Delete type=2 #22
-2024/11/06-02:46:52.997 ab0 Delete type=2 #23
-2024/11/06-02:46:52.997 ab0 Delete type=2 #24
-2024/11/06-02:46:53.003 576c Compacting 4@0 + 1@1 files
-2024/11/06-02:46:53.006 576c Generated table #37@0: 3 keys, 262 bytes
-2024/11/06-02:46:53.006 576c Compacted 4@0 + 1@1 files => 262 bytes
-2024/11/06-02:46:53.007 576c compacted to: files[ 0 1 0 0 0 0 0 ]
-2024/11/06-02:46:53.008 576c Delete type=2 #31
-2024/11/06-02:46:53.008 576c Delete type=2 #33
-2024/11/06-02:46:53.008 576c Delete type=2 #34
-2024/11/06-02:46:53.008 576c Delete type=2 #35
-2024/11/06-02:46:53.008 576c Delete type=2 #36
+2024/11/07-05:59:29.772 67ac Log #3: 3 ops saved to Table #25 OK
+2024/11/07-05:59:30.048 67ac Archiving C:\Users\Rimiru\AppData\Local\Temp\flutter_tools.f51e4f6a\flutter_tools_chrome_device.9917e132\Default\Site Characteristics Database/000003.log: OK
+2024/11/07-05:59:30.056 67ac Log #6: 20 ops saved to Table #26 OK
+2024/11/07-05:59:30.059 67ac Archiving C:\Users\Rimiru\AppData\Local\Temp\flutter_tools.f51e4f6a\flutter_tools_chrome_device.9917e132\Default\Site Characteristics Database/000006.log: OK
+2024/11/07-05:59:30.064 67ac Log #10: 20 ops saved to Table #27 OK
+2024/11/07-05:59:30.072 67ac Archiving C:\Users\Rimiru\AppData\Local\Temp\flutter_tools.f51e4f6a\flutter_tools_chrome_device.9917e132\Default\Site Characteristics Database/000010.log: OK
+2024/11/07-05:59:30.107 67ac Log #19: 6 ops saved to Table #28 OK
+2024/11/07-05:59:30.109 67ac Archiving C:\Users\Rimiru\AppData\Local\Temp\flutter_tools.f51e4f6a\flutter_tools_chrome_device.9917e132\Default\Site Characteristics Database/000019.log: OK
+2024/11/07-05:59:30.109 67ac Table #3: 3 entries OK
+2024/11/07-05:59:30.109 67ac Table #4: 20 entries OK
+2024/11/07-05:59:30.109 67ac Table #6: 5 entries OK
+2024/11/07-05:59:30.110 67ac Table #7: 20 entries OK
+2024/11/07-05:59:30.110 67ac Table #11: 4 entries OK
+2024/11/07-05:59:30.110 67ac Table #13: 50 entries OK
+2024/11/07-05:59:30.110 67ac Table #14: 20 entries OK
+2024/11/07-05:59:30.111 67ac Table #20: 5 entries OK
+2024/11/07-05:59:30.111 67ac Table #22: 3 entries OK
+2024/11/07-05:59:30.112 67ac Table #23: 20 entries OK
+2024/11/07-05:59:30.113 67ac Table #24: 20 entries OK
+2024/11/07-05:59:30.113 67ac Table #25: 3 entries OK
+2024/11/07-05:59:30.113 67ac Table #26: 20 entries OK
+2024/11/07-05:59:30.114 67ac Table #27: 20 entries OK
+2024/11/07-05:59:30.114 67ac Table #28: 6 entries OK
+2024/11/07-05:59:30.122 67ac Archiving C:\Users\Rimiru\AppData\Local\Temp\flutter_tools.f51e4f6a\flutter_tools_chrome_device.9917e132\Default\Site Characteristics Database/MANIFEST-000001: OK
+2024/11/07-05:59:30.193 67ac **** Repaired leveldb C:\Users\Rimiru\AppData\Local\Temp\flutter_tools.f51e4f6a\flutter_tools_chrome_device.9917e132\Default\Site Characteristics Database; recovered 15 files; 7447 bytes. Some data may have been lost. ****

@@ -8,7 +8,7 @@ const tokenizer = new Tokenizer();
 const stopwords = natural.stopwords; // Corrected import
 const MultiWordKeyword = require('../models/MultiWordKeyword');
 const Stopword = require('../models/Stopword');
-const { GroupChat } = require('../models/GroupChat');
+const { GroupChat } = require('../models/groupChat');
 
 async function extractInterests(answers) {
     try {
